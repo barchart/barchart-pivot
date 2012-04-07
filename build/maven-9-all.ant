@@ -1,0 +1,24 @@
+<project name="maven" default="maven" basedir=".">
+
+	<target name="maven">
+
+		<echo message="start" />
+
+		<exec executable="mvn">
+			<arg value="clean" />
+			<arg value="package" />
+			<arg value="source:jar" />
+			<arg value="javadoc:jar" />
+			<arg value="deploy" />
+			<arg value="--activate-profiles" />
+			<arg value="clean,update,patch" />
+			<arg value="--update-snapshots" />
+			<arg value="--define" />
+			<arg value="skipTests" />
+		</exec>
+
+		<echo message="finish" />
+
+	</target>
+
+</project>

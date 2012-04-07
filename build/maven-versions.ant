@@ -1,0 +1,13 @@
+<project default="maven" basedir="./..">
+
+	<echo message="basedir : ${basedir}" />
+
+	<target name="maven">
+		<exec executable="mvn">
+			<arg value="versions:use-latest-releases" />
+			<arg value="--define" />
+			<arg value="includes=com.barchart.*:*,com.ddfplus.*:*" />
+		</exec>
+	</target>
+
+</project>
