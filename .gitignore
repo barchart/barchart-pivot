@@ -3,6 +3,8 @@
 .classpath
 .settings/
 
+!/src/
+
 src/
 bin/
 log/
