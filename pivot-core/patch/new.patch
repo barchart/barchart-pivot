@@ -1,0 +1,12 @@
+diff --show-c-function --new-file --unified --recursive --exclude=.svn -- /Users/d-ray/git/barchart-pivot/pivot-core/target/checkout-apache-pivot/src/org/apache/pivot/beans/BeanAdapter.java /Users/d-ray/git/barchart-pivot/pivot-core/src/org/apache/pivot/beans/BeanAdapter.java
+--- /Users/d-ray/git/barchart-pivot/pivot-core/target/checkout-apache-pivot/src/org/apache/pivot/beans/BeanAdapter.java	2013-03-13 11:38:05.000000000 -0500
++++ /Users/d-ray/git/barchart-pivot/pivot-core/src/org/apache/pivot/beans/BeanAdapter.java	2013-03-13 11:46:04.000000000 -0500
+@@ -64,7 +64,7 @@ public class BeanAdapter implements Map<
+ 
+         private int i = 0;
+         private int j = 0;
+-        private String nextProperty = null;
++        private String nextProperty = null;//David was here
+ 
+         public PropertyIterator() {
+             Class<?> type = bean.getClass();
