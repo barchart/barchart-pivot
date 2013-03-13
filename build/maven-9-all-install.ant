@@ -9,7 +9,7 @@
 			<arg value="package" />
 			<arg value="source:jar" />
 			<arg value="javadoc:jar" />
-			<arg value="deploy" />
+			<arg value="install" />
 			<arg value="--activate-profiles" />
 			<arg value="clean,update,patch" />
 			<arg value="--update-snapshots" />
