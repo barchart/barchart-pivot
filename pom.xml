@@ -139,11 +139,21 @@
 											<!-- Git diff command. -->
 											<arg value="diff" />
 
+											<!-- -->
+											<arg value="--relative" />
+
+											<!-- Force folder-to-folder diff mode. -->
+											<arg value="--no-index" />
+
+											<arg value="--" />
+
 											<!-- Local unmodified checkout of remote Apache source. -->
-											<arg value="${repodir}/src" />
+											<!-- <arg value="${repodir}/src" /> -->
+											<arg value="target/checkout-apache-pivot/src/" />
 
 											<!-- Local developer-modified working copy of Apache source. -->
-											<arg value="${basedir}/src" />
+											<!-- <arg value="${basedir}/src" /> -->
+											<arg value="src/" />
 
 										</exec>
 
@@ -160,57 +170,7 @@
 			</build>
 		</profile>
 
-		<!-- obsolete, do not use -->
-		<profile>
-			<id>diff</id>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-antrun-plugin</artifactId>
-						<executions>
-							<execution>
-								<id>diff</id>
-								<phase>process-sources</phase>
-								<goals>
-									<goal>run</goal>
-								</goals>
-								<configuration>
-									<target>
-										<property name="base" value="${basedir}/src" />
-										<property name="repo" value="${repodir}/src" />
-										<property name="file" value="${basedir}/patch/new.patch" />
-										<property name="mod" value="${repo-module}" />
-										<echo message="running diff" />
-										<echo message="base=${base}" />
-										<echo message="repo=${repo}" />
-										<exec executable="diff" output="${file}" error="${file}.diff"
-											osfamily="unix">
-											<arg value="--show-c-function" />
-											<arg value="--new-file" />
-											<arg value="--unified" />
-											<arg value="--recursive" />
-											<arg value="--exclude=.svn" />
-											<arg value="--" />
-											<arg value="${repo}" />
-											<arg value="${base}" />
-										</exec>
-										<exec executable="sed" error="${file}.sed" osfamily="unix">
-											<arg value="--expression=1d" />
-											<arg value="--expression=s|${base}|${mod}/src|g" />
-											<arg value="--expression=s|${repo}|${mod}/src|g" />
-											<arg value="--in-place" />
-											<arg value="${file}" />
-										</exec>
-									</target>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-
+		<!-- Remove local developer copy of Apache source. -->
 		<profile>
 			<id>clean</id>
 			<build>
@@ -245,6 +205,8 @@
 			</build>
 		</profile>
 
+		<!-- Make local checkout of remote Apache source as well as local developer 
+			working copy. -->
 		<profile>
 
 			<id>update</id>
@@ -253,12 +215,12 @@
 
 				<plugins>
 
+					<!-- Download from Apache. -->
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-scm-plugin</artifactId>
 						<version>1.6</version>
 						<executions>
-							<!-- download from apache -->
 							<execution>
 								<id>checkout-apache</id>
 								<phase>generate-sources</phase>
@@ -273,6 +235,34 @@
 						</executions>
 					</plugin>
 
+					<!-- Remove SVN metadata. -->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-clean-plugin</artifactId>
+						<version>2.5</version>
+						<executions>
+							<execution>
+								<id>checkout-apache</id>
+								<phase>generate-sources</phase>
+								<goals>
+									<goal>clean</goal>
+								</goals>
+								<configuration>
+									<excludeDefaultDirectories>true</excludeDefaultDirectories>
+									<filesets>
+										<fileset>
+											<directory>${repodir}</directory>
+											<includes>
+												<include>**/.svn/**</include>
+											</includes>
+										</fileset>
+									</filesets>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+
+					<!-- Copy main and test source folders to working copy. -->
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-resources-plugin</artifactId>
@@ -323,28 +313,54 @@
 
 		</profile>
 
+		<!-- Apply current patch. -->
 		<profile>
 			<id>patch</id>
 			<build>
 				<plugins>
+
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-patch-plugin</artifactId>
-						<version>1.1.1</version>
+						<artifactId>maven-antrun-plugin</artifactId>
 						<executions>
 							<execution>
-								<id>patch</id>
-								<phase>process-sources</phase>
-								<goals>
-									<goal>apply</goal>
-								</goals>
+								<phase>generate-sources</phase>
 								<configuration>
-									<strip>2</strip>
-									<patchFile>patch/new.patch</patchFile>
+									<target>
+
+										<echo message="### runing git ###" />
+
+										<fileset id="patch.fileSet" dir="${basedir}/patch">
+											<include name="*.patch" />
+										</fileset>
+
+										<property name="patch.fileProp" refid="patch.fileSet" />
+
+										<loadresource property="patch.fileArgs">
+											<propertyresource name="patch.fileProp" />
+											<filterchain>
+												<tokenfilter>
+													<replacestring from=";" to=" " />
+													<replacestring from=":" to=" " />
+												</tokenfilter>
+											</filterchain>
+										</loadresource>
+
+										<exec executable="git" dir="${basedir}">
+
+											<arg line="apply --verbose ${patch.fileArgs}" />
+
+										</exec>
+
+									</target>
 								</configuration>
+								<goals>
+									<goal>run</goal>
+								</goals>
 							</execution>
 						</executions>
 					</plugin>
+
 				</plugins>
 			</build>
 		</profile>
