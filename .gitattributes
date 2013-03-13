@@ -1,0 +1,6 @@
+
+#
+# Exclude subversion folders form git-diff.
+#
+
+.svn/ -diff
