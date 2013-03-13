@@ -1,14 +1,29 @@
+<!--
+
+	Make fresh local copy of remote apache source and compile it.
+	
+-->
 <project name="maven" default="maven" basedir="./..">
 
 	<target name="maven">
 
 		<echo message="start" />
 
-		<exec executable="mvn">
+		<condition property="executable" value="mvn">
+			<os family="unix" />
+		</condition>
+		<condition property="executable" value="mvn.bat">
+			<os family="windows" />
+		</condition>
+
+		<exec executable="${executable}">
+
 			<arg value="clean" />
 			<arg value="compile" />
+
 			<arg value="--activate-profiles" />
 			<arg value="update" />
+
 			<arg value="--define" />
 			<arg value="skipTests" />
 		</exec>

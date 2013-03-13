@@ -1,15 +1,33 @@
+<!--
+
+	Apply local patches to the local copy of the apache source.
+	
+	Local apache source should be checked out in a previous step.
+	
+-->
 <project name="maven" default="maven" basedir="./..">
 
 	<target name="maven">
 
 		<echo message="start" />
 
-		<exec executable="mvn">
+		<condition property="executable" value="mvn">
+			<os family="unix" />
+		</condition>
+		<condition property="executable" value="mvn.bat">
+			<os family="windows" />
+		</condition>
+
+		<exec executable="${executable}">
+
 			<arg value="process-sources" />
+
 			<arg value="--activate-profiles" />
 			<arg value="patch" />
+
 			<arg value="--define" />
 			<arg value="skipTests" />
+
 		</exec>
 
 		<echo message="finish" />

@@ -1,7 +1,11 @@
 <!--
 
-	Remove local copy of apache source and compiled classes.
-	 
+	Compare changes between local modified apache sources,
+	local checked out apache sources, then create patch files 
+	and place these patch files in the per-project patch folders.
+	
+	Local apache source should be checked out in a previous step.
+		
 -->
 <project name="maven" default="maven" basedir="./..">
 
@@ -18,15 +22,13 @@
 
 		<exec executable="${executable}">
 
-			<arg value="clean" />
+			<arg value="generate-sources" />
 
 			<arg value="--activate-profiles" />
-			<arg value="clean" />
+			<arg value="difference" />
 
 			<arg value="--define" />
 			<arg value="skipTests" />
-
-			<arg value="--update-snapshots" />
 
 		</exec>
 

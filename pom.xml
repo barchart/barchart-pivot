@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
 
@@ -21,7 +22,7 @@
 
 	<modules>
 
-		<!-- required -->
+		<!-- Required Apache Pivot modules. -->
 		<module>pivot-core</module>
 		<module>pivot-core-web</module>
 		<module>pivot-core-web-server</module>
@@ -29,7 +30,7 @@
 		<module>pivot-wtk-skin-terra</module>
 		<module>pivot-wtk-charts</module>
 
-		<!-- optional -->
+		<!-- Optional Apache Pivot modules. -->
 		<!-- <module>pivot-demos</module> -->
 		<!-- <module>pivot-demos-server</module> -->
 		<!-- <module>pivot-examples</module> -->
@@ -40,13 +41,20 @@
 
 	<properties>
 
+		<!-- Apache Pivot source remote URL. -->
 		<repo-url>http://svn.apache.org/repos/asf/pivot/trunk</repo-url>
+		<!-- SCM read-only connection to Apache source. -->
 		<repo-connection>scm:svn:${repo-url}</repo-connection>
 
+		<!-- Apache pivot module provided by each module pom.xml. -->
 		<repo-module />
+
+		<!-- Local copy of Apache Pivot source after check out step. -->
 		<repodir>${project.build.directory}/checkout-apache-pivot</repodir>
 
+		<!-- Apache Pivot convention for main java folders. -->
 		<module-src-main-java>src</module-src-main-java>
+		<!-- Apache Pivot convention for test java folders. -->
 		<module-src-test-java>testing</module-src-test-java>
 
 	</properties>
@@ -106,6 +114,53 @@
 
 	<profiles>
 
+		<!-- Create DIFF patch between Apache and Barchart. -->
+		<!-- Must have command line git available on local O/S. -->
+		<profile>
+			<id>difference</id>
+			<build>
+
+				<plugins>
+
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<executions>
+							<execution>
+								<phase>generate-sources</phase>
+								<configuration>
+									<target>
+
+										<echo message="### runing git ###" />
+
+										<exec executable="git" output="${basedir}/patch/current.patch"
+											error="${basedir}/target/patch-error.txt">
+
+											<!-- Git diff command. -->
+											<arg value="diff" />
+
+											<!-- Local unmodified checkout of remote Apache source. -->
+											<arg value="${repodir}/src" />
+
+											<!-- Local developer-modified working copy of Apache source. -->
+											<arg value="${basedir}/src" />
+
+										</exec>
+
+									</target>
+								</configuration>
+								<goals>
+									<goal>run</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+
+				</plugins>
+			</build>
+		</profile>
+
+		<!-- obsolete, do not use -->
 		<profile>
 			<id>diff</id>
 			<build>
@@ -129,7 +184,8 @@
 										<echo message="running diff" />
 										<echo message="base=${base}" />
 										<echo message="repo=${repo}" />
-										<exec executable="diff" output="${file}" error="${file}.diff" osfamily="unix">
+										<exec executable="diff" output="${file}" error="${file}.diff"
+											osfamily="unix">
 											<arg value="--show-c-function" />
 											<arg value="--new-file" />
 											<arg value="--unified" />

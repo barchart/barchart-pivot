@@ -3,15 +3,32 @@
 	<echo message="basedir : ${basedir}" />
 
 	<target name="maven">
-		<exec executable="mvn">
+
+		<condition property="executable" value="mvn">
+			<os family="unix" />
+		</condition>
+		<condition property="executable" value="mvn.bat">
+			<os family="windows" />
+		</condition>
+
+		<exec executable="${executable}">
+
 			<arg value="validate" />
+			<arg value="release:clean" />
 			<arg value="release:prepare" />
 			<arg value="release:perform" />
+
 			<arg value="--activate-profiles" />
 			<arg value="clean,update,patch,release" />
+
 			<arg value="--define" />
 			<arg value="resume=false" />
+
+			<arg value="--define" />
+			<arg value="arguments=--define skipTests" />
+
 		</exec>
+
 	</target>
 
 </project>

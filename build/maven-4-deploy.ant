@@ -1,7 +1,12 @@
 <!--
 
-	Remove local copy of apache source and compiled classes.
-	 
+	Produce local artifacts and deploy them to sonatype.
+	https://oss.sonatype.org/content/groups/public/
+	
+	Local maven settings.xml file must provide access to sonatype repositories.
+	
+	Local apache source should be checked out in a previous step.
+	
 -->
 <project name="maven" default="maven" basedir="./..">
 
@@ -19,14 +24,13 @@
 		<exec executable="${executable}">
 
 			<arg value="clean" />
-
-			<arg value="--activate-profiles" />
-			<arg value="clean" />
+			<arg value="package" />
+			<arg value="source:jar" />
+			<arg value="javadoc:jar" />
+			<arg value="deploy" />
 
 			<arg value="--define" />
 			<arg value="skipTests" />
-
-			<arg value="--update-snapshots" />
 
 		</exec>
 

@@ -1,7 +1,9 @@
 <!--
 
-	Remove local copy of apache source and compiled classes.
-	 
+	Produce local artifacts. Do not deploy to any remote maven server.
+	
+	Local apache source should be checked out in a previous step.
+	
 -->
 <project name="maven" default="maven" basedir="./..">
 
@@ -19,14 +21,13 @@
 		<exec executable="${executable}">
 
 			<arg value="clean" />
-
-			<arg value="--activate-profiles" />
-			<arg value="clean" />
+			<arg value="package" />
+			<arg value="source:jar" />
+			<arg value="javadoc:jar" />
+			<arg value="install" />
 
 			<arg value="--define" />
 			<arg value="skipTests" />
-
-			<arg value="--update-snapshots" />
 
 		</exec>
 
