@@ -107,7 +107,7 @@
 			<build>
 
 				<plugins>
-				
+
 					<!-- Use ant as cross-platform launcher for git command line. -->
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
@@ -119,8 +119,8 @@
 									<target>
 
 										<!-- Execute git command line. -->
-										<exec executable="git" output="${basedir}/patch/current.patch"
-											error="${basedir}/target/patch-error.txt">
+										<exec executable="git" failonerror="true"
+											output="${basedir}/patch/current.patch" error="${basedir}/target/patch-error.txt">
 
 											<!-- Git diff command. -->
 											<arg value="diff" />
@@ -334,7 +334,7 @@
 										</loadresource>
 
 										<!-- Execute git to apply patch to working copy. -->
-										<exec executable="git" dir="${basedir}">
+										<exec executable="git" failonerror="true" dir="${basedir}">
 											<arg line="apply --verbose ${patch.fileArgs}" />
 										</exec>
 
