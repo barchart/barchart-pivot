@@ -10,14 +10,14 @@
 
 	<groupId>com.barchart.pivot</groupId>
 	<artifactId>barchart-pivot</artifactId>
-	<version>2.0.2-build001</version>
+	<version>2.0.2-build002-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<scm>
 		<url>https://github.com/barchart/barchart-pivot</url>
 		<connection>scm:git:git://github.com/barchart/barchart-pivot.git</connection>
 		<developerConnection>scm:git:ssh://git@github.com/barchart/barchart-pivot.git</developerConnection>
-	  <tag>barchart-pivot-2.0.2-build001</tag>
+	  <tag>HEAD</tag>
   </scm>
 
 	<modules>
@@ -295,9 +295,7 @@
 		// Find current patch files.
 		def fileList = []
 		patchDir.eachFileMatch (~/.*.patch/) { 
-			file -> fileList << file.getAbsolutePath() }
-		
-		// Do not try to invoke git whent there is no patches.
+			file -> fileList << file.getAbsolutePath() } // Do not try to invoke git whent there is no patches.
 		if(fileList.isEmpty()){
 			println "### No patch files."
 			return
