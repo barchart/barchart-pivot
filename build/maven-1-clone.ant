@@ -1,13 +1,13 @@
 <!--
 
-	Make fresh local copy of remote apache source and compile it.
+	Make fresh local copy of Apache Remote Source.
+	
+	This step is required by following steps.
 	
 -->
 <project name="maven" default="maven" basedir="./..">
 
 	<target name="maven">
-
-		<echo message="start" />
 
 		<condition property="executable" value="mvn">
 			<os family="unix" />
@@ -18,15 +18,12 @@
 
 		<exec executable="${executable}">
 
-			<arg value="clean" />
-			<arg value="compile" />
+			<arg value="generate-sources" />
 
 			<arg value="--activate-profiles" />
-			<arg value="update" />
+			<arg value="clone" />
 
 		</exec>
-
-		<echo message="finish" />
 
 	</target>
 

@@ -1,6 +1,6 @@
 <!--
 
-	Perform steps 0,1,2 and 3.
+	Perform steps 0,1,2,3 and 4.
 	
 	See relevant build script files. 
 		
@@ -24,7 +24,7 @@
 			<arg value="install" />
 
 			<arg value="--activate-profiles" />
-			<arg value="clean,update,patch" />
+			<arg value="clean,clone,copy,patch" />
 
 			<arg value="--update-snapshots" />
 

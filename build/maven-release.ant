@@ -20,7 +20,7 @@
 			<arg value="release:perform" />
 
 			<arg value="--activate-profiles" />
-			<arg value="clean,update,patch,release" />
+			<arg value="clean,clone,copy,patch,release" />
 
 			<arg value="--define" />
 			<arg value="resume=false" />

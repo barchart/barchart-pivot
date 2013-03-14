@@ -1,15 +1,13 @@
 <!--
 
-	Apply local patches to the local copy of the apache source.
+	Produce local artifacts. Do not deploy to any remote maven server.
 	
-	Local apache source should be checked out in a previous step.
+	Local working copy should be prepared in a previous step.
 	
 -->
 <project name="maven" default="maven" basedir="./..">
 
 	<target name="maven">
-
-		<echo message="start" />
 
 		<condition property="executable" value="mvn">
 			<os family="unix" />
@@ -20,14 +18,13 @@
 
 		<exec executable="${executable}">
 
-			<arg value="process-sources" />
+			<arg value="clean" />
+			<arg value="install" />
 
-			<arg value="--activate-profiles" />
-			<arg value="patch" />
+			<arg value="--define" />
+			<arg value="skipTests" />
 
 		</exec>
-
-		<echo message="finish" />
 
 	</target>
 

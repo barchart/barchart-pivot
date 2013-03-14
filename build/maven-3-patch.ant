@@ -1,11 +1,9 @@
 <!--
 
-	Compare changes between local modified apache sources,
-	local checked out apache sources, then create patch files 
-	and place these patch files in the per-project patch folders.
+	Apply patches to the working copy of the apache source.
 	
-	Local apache sources should be prepared in a previous step.
-		
+	Local working copy should be created in a previous step.
+	
 -->
 <project name="maven" default="maven" basedir="./..">
 
@@ -23,8 +21,8 @@
 			<arg value="process-sources" />
 
 			<arg value="--activate-profiles" />
-			<arg value="diff" />
-
+			<arg value="patch" />
+			
 		</exec>
 
 	</target>

@@ -65,6 +65,7 @@
 
 	<build>
 
+		<!-- Pivot source directory. -->
 		<sourceDirectory>${module-src-main-java}</sourceDirectory>
 
 		<!-- Pivot view resources are stored with code. -->
@@ -89,7 +90,7 @@
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-release-plugin</artifactId>
 					<configuration>
-						<arguments>--activate-profiles clean,update,patch,release</arguments>
+						<arguments>--activate-profiles clean,clone,copy,patch,release</arguments>
 					</configuration>
 				</plugin>
 
@@ -98,7 +99,7 @@
 
 		<plugins>
 
-			<!-- Always generate sources. -->
+			<!-- Always generate project sources. -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
@@ -117,70 +118,7 @@
 
 	<profiles>
 
-		<!-- Create patch of difference between Apache and Barchart. -->
-		<!-- Must have command line git available on local O/S. -->
-		<profile>
-			<id>difference</id>
-			<build>
-
-				<plugins>
-
-					<!-- Use ant as cross-platform launcher for git command line. -->
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-antrun-plugin</artifactId>
-						<executions>
-							<execution>
-								<id>patch-create</id>
-								<phase>generate-sources</phase>
-								<goals>
-									<goal>run</goal>
-								</goals>
-								<configuration>
-									<target>
-
-										<!-- Execute git command line. -->
-										<exec executable="git" resultproperty="result"
-											failonerror="false" output="${basedir}/patch/current.patch"
-											error="${basedir}/target/patch-error.txt">
-
-											<!-- Git diff command. -->
-											<arg value="diff" />
-
-											<!-- Encode file names relative to ${basedir} -->
-											<arg value="--relative" />
-
-											<!-- Force folder-to-folder diff mode. -->
-											<arg value="--no-index" />
-
-											<!-- Arguments separator -->
-											<arg value="--" />
-
-											<!-- Local unmodified checkout of remote Apache source. -->
-											<arg value="${checkoutFolder}/src/" />
-
-											<!-- Local developer-modified working copy of Apache source. -->
-											<arg value="src/" />
-
-										</exec>
-
-										<delete>
-											<fileset dir="${basedir}/patch">
-												<size value="0" when="equal" />
-											</fileset>
-										</delete>
-
-									</target>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-
-				</plugins>
-			</build>
-		</profile>
-
-		<!-- Remove local developer copy of Apache sources. -->
+		<!-- Remove local repository clone and local developer copy of Apache sources. -->
 		<profile>
 			<id>clean</id>
 			<build>
@@ -190,7 +128,7 @@
 						<artifactId>maven-clean-plugin</artifactId>
 						<executions>
 							<execution>
-								<id>clean-apache</id>
+								<id>clean-local</id>
 								<phase>clean</phase>
 								<goals>
 									<goal>clean</goal>
@@ -218,12 +156,10 @@
 			</build>
 		</profile>
 
-		<!-- Make local checkout of remote Apache source as well as local developer 
-			working copy. -->
+		<!-- Make local checkout of remote Apache source. -->
+		<!-- Must have command line SVN available on local O/S -->
 		<profile>
-
-			<id>update</id>
-
+			<id>clone</id>
 			<build>
 
 				<plugins>
@@ -253,7 +189,7 @@
 						<artifactId>maven-clean-plugin</artifactId>
 						<executions>
 							<execution>
-								<id>remove-apache</id>
+								<id>remove-subversion</id>
 								<phase>generate-sources</phase>
 								<goals>
 									<goal>clean</goal>
@@ -273,6 +209,17 @@
 						</executions>
 					</plugin>
 
+				</plugins>
+
+			</build>
+
+		</profile>
+
+		<!-- Make local developer working copy from local Apache clone. -->
+		<profile>
+			<id>copy</id>
+			<build>
+				<plugins>
 					<!-- Copy main and test source folders to working copy. -->
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
@@ -317,58 +264,145 @@
 							</execution>
 						</executions>
 					</plugin>
-
 				</plugins>
-
 			</build>
-
 		</profile>
 
-		<!-- Apply patch files to working copy. -->
-		<!-- Must have command line git available on local O/S. -->
+		<!-- Apply patch files to the working copy. -->
+		<!-- Must have command line GIT available on local O/S. -->
 		<profile>
 			<id>patch</id>
 			<build>
 				<plugins>
 
-					<!-- Use ant as cross-platform launcher for git command line. -->
 					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-antrun-plugin</artifactId>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>groovy-maven-plugin</artifactId>
 						<executions>
 							<execution>
-								<id>patch-apply</id>
+								<id>apply-patch</id>
 								<phase>process-sources</phase>
 								<goals>
-									<goal>run</goal>
+									<goal>execute</goal>
 								</goals>
 								<configuration>
-									<target>
+									<source>
+		<![CDATA[
+		// Layout convention.
+		def baseDir = project["basedir"]
+		def patchDir = new File(baseDir, "patch")
+		
+		// Find current patch files.
+		def fileList = []
+		patchDir.eachFileMatch (~/.*.patch/) { 
+			file -> fileList << file.getAbsolutePath()
+		}
+		
+		// Do not try to invoke git whent there is no patches.
+		if(fileList.isEmpty()){
+			println "### No patch files."
+			return
+		}
 
-										<!-- Find all *.patch files. -->
-										<fileset id="patch.fileSet" dir="${basedir}">
-											<include name="patch/*.patch" />
-										</fileset>
+		// Invoke git apply.		
+		def command = [ "git", "apply", "--verbose" ] + fileList
+		println "### Patch command: ${command}"
+		def processBuilder = new ProcessBuilder(command)
+		processBuilder.directory(baseDir)
+		def process = processBuilder.start(); process.waitFor()
 
-										<!-- Convert discoverd patch files to a one-line property. -->
-										<property name="patch.fileProp" refid="patch.fileSet" />
+		// Process standard output is not used.
+		def patchText = "${process.in.text}"
+		 
+		// Process error output contains status messages.
+		def errorText = "${process.err.text}"
+		println "${errorText}"
+		
+		if(errorText.contains("error") || errorText.contains("fatal")){
+			throw new Exception("Git failed, see messages above. ")
+		}
+		]]>
+									</source>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
 
-										<!-- Replace class path separator with a space separator. -->
-										<loadresource property="patch.fileArgs">
-											<propertyresource name="patch.fileProp" />
-											<filterchain>
-												<tokenfilter>
-													<replacestring from=";" to=" " />
-												</tokenfilter>
-											</filterchain>
-										</loadresource>
+				</plugins>
+			</build>
+		</profile>
 
-										<!-- Execute git to apply patch to working copy. -->
-										<exec executable="git" failonerror="true" dir="${basedir}">
-											<arg line="apply --verbose ${patch.fileArgs}" />
-										</exec>
+		<!-- Create patch from difference between clone and working copy. -->
+		<!-- Must have command line git available on local O/S. -->
+		<profile>
+			<id>diff</id>
+			<build>
 
-									</target>
+				<plugins>
+
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>groovy-maven-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>create-patch</id>
+								<phase>process-sources</phase>
+								<goals>
+									<goal>execute</goal>
+								</goals>
+								<configuration>
+									<source>
+		<![CDATA[
+		// Do not generate patches for parent project.		
+		def packaging = project["packaging"]
+		if("pom".equals(packaging)){
+			println "### Skip patch for pom project."
+			return;
+		} 
+		
+		// Layout convention.
+		def baseDir = project["basedir"]
+		def patchDir = new File(baseDir, "patch")
+		def patchFile = new File(patchDir, "current.patch")
+		def checkoutFolder = project.properties["checkoutFolder"] + "/"
+		def source = checkoutFolder + "src"
+		def target = "src"
+	
+		// Invoke git diff.	
+		def command = [ "git", "diff", "--relative", "--no-index",  "--", source, target ]
+		println "### Patch command: ${command}"
+		def processBuilder = new ProcessBuilder(command)
+		processBuilder.directory(baseDir)
+		def process = processBuilder.start(); process.waitFor()
+		
+		// Process standard output contains patch.
+		def patchText = "${process.in.text}"
+		 
+		// Process error output contains status messages.
+		def errorText = "${process.err.text}" 
+		println "${errorText}"
+		
+		if(errorText.contains("error") || errorText.contains("fatal")) {
+			throw new Exception("Git failed, see error messages above.")
+		}
+
+		// Remove existing patch, if any.
+		patchFile.delete()
+		
+		// Do not create empty patch files.
+		if(patchText.isEmpty()){
+			println "### No difference."
+			return
+		}
+		
+		// Format patch for sumbission to Apache.
+		def diffText = patchText.replaceAll(checkoutFolder,"")
+		
+		// Create patch file.
+		patchFile.write(diffText)
+		println "### Patch created: " + patchFile 
+		]]>
+									</source>
 								</configuration>
 							</execution>
 						</executions>

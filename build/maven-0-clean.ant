@@ -1,13 +1,11 @@
 <!--
 
-	Remove local copy of apache source and compiled classes.
+	Remove local copy of apache source and working copy.
 	 
 -->
 <project name="maven" default="maven" basedir="./..">
 
 	<target name="maven">
-
-		<echo message="start" />
 
 		<condition property="executable" value="mvn">
 			<os family="unix" />
@@ -23,11 +21,7 @@
 			<arg value="--activate-profiles" />
 			<arg value="clean" />
 
-			<arg value="--update-snapshots" />
-
 		</exec>
-
-		<echo message="finish" />
 
 	</target>
 

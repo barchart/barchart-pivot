@@ -1,18 +1,13 @@
 <!--
 
-	Produce local artifacts and deploy them to sonatype.
-	https://oss.sonatype.org/content/groups/public/
-	
-	Local maven settings.xml file must provide access to sonatype repositories.
-	
+	Make fresh local working copy from local apache source clone.
+
 	Local apache source should be checked out in a previous step.
 	
 -->
 <project name="maven" default="maven" basedir="./..">
 
 	<target name="maven">
-
-		<echo message="start" />
 
 		<condition property="executable" value="mvn">
 			<os family="unix" />
@@ -23,15 +18,12 @@
 
 		<exec executable="${executable}">
 
-			<arg value="clean" />
-			<arg value="deploy" />
+			<arg value="generate-sources" />
 
-			<arg value="--define" />
-			<arg value="skipTests" />
+			<arg value="--activate-profiles" />
+			<arg value="copy" />
 
 		</exec>
-
-		<echo message="finish" />
 
 	</target>
 
