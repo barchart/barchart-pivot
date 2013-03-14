@@ -24,9 +24,6 @@
 		<exec executable="${executable}">
 
 			<arg value="clean" />
-			<arg value="package" />
-			<arg value="source:jar" />
-			<arg value="javadoc:jar" />
 			<arg value="deploy" />
 
 			<arg value="--define" />

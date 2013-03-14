@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>com.barchart.base</groupId>
 		<artifactId>barchart-archon</artifactId>
-		<version>2.1.1</version>
+		<version>2.4.1</version>
 	</parent>
 
 	<groupId>com.barchart.pivot</groupId>
@@ -96,6 +96,23 @@
 			</plugins>
 		</pluginManagement>
 
+		<plugins>
+
+			<!-- Always generate sources. -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>jar-no-fork</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+		</plugins>
+
 	</build>
 
 	<profiles>
@@ -114,7 +131,11 @@
 						<artifactId>maven-antrun-plugin</artifactId>
 						<executions>
 							<execution>
+								<id>patch-create</id>
 								<phase>generate-sources</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
 								<configuration>
 									<target>
 
@@ -144,9 +165,6 @@
 
 									</target>
 								</configuration>
-								<goals>
-									<goal>run</goal>
-								</goals>
 							</execution>
 						</executions>
 					</plugin>
@@ -163,28 +181,31 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-clean-plugin</artifactId>
-						<configuration>
-							<filesets>
-								<fileset>
-									<directory>src</directory>
-									<includes>
-										<include>**/*</include>
-									</includes>
-									<excludes>
-										<exclude>**/readme.md</exclude>
-									</excludes>
-								</fileset>
-								<fileset>
-									<directory>test</directory>
-									<includes>
-										<include>**/*</include>
-									</includes>
-									<excludes>
-										<exclude>**/readme.md</exclude>
-									</excludes>
-								</fileset>
-							</filesets>
-						</configuration>
+						<executions>
+							<execution>
+								<id>clean-apache</id>
+								<phase>clean</phase>
+								<goals>
+									<goal>clean</goal>
+								</goals>
+								<configuration>
+									<filesets>
+										<fileset>
+											<directory>${basedir}/src</directory>
+											<includes>
+												<include>**/*</include>
+											</includes>
+										</fileset>
+										<fileset>
+											<directory>${basedir}/test</directory>
+											<includes>
+												<include>**/*</include>
+											</includes>
+										</fileset>
+									</filesets>
+								</configuration>
+							</execution>
+						</executions>
 					</plugin>
 				</plugins>
 			</build>
@@ -204,7 +225,6 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-scm-plugin</artifactId>
-						<version>1.6</version>
 						<executions>
 							<execution>
 								<id>checkout-apache</id>
@@ -224,10 +244,9 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-clean-plugin</artifactId>
-						<version>2.5</version>
 						<executions>
 							<execution>
-								<id>checkout-apache</id>
+								<id>remove-apache</id>
 								<phase>generate-sources</phase>
 								<goals>
 									<goal>clean</goal>
@@ -257,7 +276,7 @@
 						<executions>
 							<execution>
 								<id>copy-src-main-java</id>
-								<phase>process-sources</phase>
+								<phase>generate-sources</phase>
 								<goals>
 									<goal>copy-resources</goal>
 								</goals>
@@ -274,7 +293,7 @@
 							</execution>
 							<execution>
 								<id>copy-src-test-java</id>
-								<phase>process-sources</phase>
+								<phase>generate-sources</phase>
 								<goals>
 									<goal>copy-resources</goal>
 								</goals>
@@ -311,7 +330,11 @@
 						<artifactId>maven-antrun-plugin</artifactId>
 						<executions>
 							<execution>
-								<phase>generate-sources</phase>
+								<id>patch-apply</id>
+								<phase>process-sources</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
 								<configuration>
 									<target>
 
@@ -340,9 +363,6 @@
 
 									</target>
 								</configuration>
-								<goals>
-									<goal>run</goal>
-								</goals>
 							</execution>
 						</executions>
 					</plugin>
