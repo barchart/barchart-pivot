@@ -140,8 +140,9 @@
 									<target>
 
 										<!-- Execute git command line. -->
-										<exec executable="git" failonerror="true"
-											output="${basedir}/patch/current.patch" error="${basedir}/target/patch-error.txt">
+										<exec executable="git" resultproperty="result"
+											failonerror="false" output="${basedir}/patch/current.patch"
+											error="${basedir}/target/patch-error.txt">
 
 											<!-- Git diff command. -->
 											<arg value="diff" />
@@ -162,6 +163,12 @@
 											<arg value="src/" />
 
 										</exec>
+
+										<delete>
+											<fileset dir="${basedir}/patch">
+												<size value="0" when="equal" />
+											</fileset>
+										</delete>
 
 									</target>
 								</configuration>

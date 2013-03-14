@@ -24,8 +24,6 @@
 			<arg value="--activate-profiles" />
 			<arg value="update" />
 
-			<arg value="--define" />
-			<arg value="skipTests" />
 		</exec>
 
 		<echo message="finish" />

@@ -25,9 +25,6 @@
 			<arg value="--activate-profiles" />
 			<arg value="patch" />
 
-			<arg value="--define" />
-			<arg value="skipTests" />
-
 		</exec>
 
 		<echo message="finish" />

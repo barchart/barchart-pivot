@@ -23,9 +23,6 @@
 			<arg value="--activate-profiles" />
 			<arg value="clean" />
 
-			<arg value="--define" />
-			<arg value="skipTests" />
-
 			<arg value="--update-snapshots" />
 
 		</exec>
