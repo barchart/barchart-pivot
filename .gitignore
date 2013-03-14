@@ -1,15 +1,21 @@
-
+#
+# Eclipse metadata.
+#
 .project
 .classpath
 .settings/
 
+#
+# Pivot source and build folders.
+#
 src/
 bin/
 log/
 logs/
 target/
 
-!/src
-
+#
+# Maven release metadata.
+#
 release.properties
 pom.xml.releaseBackup
