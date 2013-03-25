@@ -315,7 +315,7 @@
 		def errorText = "${process.err.text}"
 		println "${errorText}"
 		
-		if(errorText.contains("error") || errorText.contains("fatal")){
+		if(errorText.startsWith("error:") || errorText.startsWith("fatal:")){
 			throw new Exception("Git failed, see messages above. ")
 		}
 		]]>
@@ -379,7 +379,7 @@
 		def errorText = "${process.err.text}" 
 		println "${errorText}"
 		
-		if(errorText.contains("error") || errorText.contains("fatal")) {
+		if(errorText.startsWith("error:") || errorText.contains("fatal:")) {
 			throw new Exception("Git failed, see error messages above.")
 		}
 
