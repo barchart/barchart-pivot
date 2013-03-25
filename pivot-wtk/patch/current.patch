@@ -1,7 +1,16 @@
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/DesktopApplicationContext.java b/pivot-wtk/src/org/apache/pivot/wtk/DesktopApplicationContext.java
-index eb23b16..497b84e 100644
+index eb23b16..7cc2c4f 100644
 --- a/pivot-wtk/src/org/apache/pivot/wtk/DesktopApplicationContext.java
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/DesktopApplicationContext.java
+@@ -85,7 +85,7 @@ public final class DesktopApplicationContext extends ApplicationContext {
+         private static final long serialVersionUID = 0;
+ 
+         private transient Window rootOwner = null;
+-        private transient Runnable updateHostWindowTitleBarCallback = null;
++        private transient Runnable updateHostWindowTitleBarCallback = null;//something somewhere
+ 
+         private transient WindowListener rootOwnerListener = new WindowListener.Adapter() {
+             @Override
 @@ -192,6 +192,22 @@ public final class DesktopApplicationContext extends ApplicationContext {
              }
          }
