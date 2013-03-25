@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.barchart.base</groupId>
 		<artifactId>barchart-archon</artifactId>
-		<version>2.4.1</version>
+		<version>2.5.0</version>
 	</parent>
 
 	<groupId>com.barchart.pivot</groupId>
@@ -294,8 +294,10 @@
 		
 		// Find current patch files.
 		def fileList = []
+		// Do not try to invoke git whent there is no patches.
 		patchDir.eachFileMatch (~/.*.patch/) { 
-			file -> fileList << file.getAbsolutePath() } // Do not try to invoke git whent there is no patches.
+			file -> fileList.add(file.path)
+		} 
 		if(fileList.isEmpty()){
 			println "### No patch files."
 			return
