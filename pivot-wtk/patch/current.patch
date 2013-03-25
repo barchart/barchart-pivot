@@ -1,16 +1,7 @@
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/DesktopApplicationContext.java b/pivot-wtk/src/org/apache/pivot/wtk/DesktopApplicationContext.java
-index eb23b16..7cc2c4f 100644
+index eb23b16..c85a306 100644
 --- a/pivot-wtk/src/org/apache/pivot/wtk/DesktopApplicationContext.java
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/DesktopApplicationContext.java
-@@ -85,7 +85,7 @@ public final class DesktopApplicationContext extends ApplicationContext {
-         private static final long serialVersionUID = 0;
- 
-         private transient Window rootOwner = null;
--        private transient Runnable updateHostWindowTitleBarCallback = null;
-+        private transient Runnable updateHostWindowTitleBarCallback = null;//something somewhere
- 
-         private transient WindowListener rootOwnerListener = new WindowListener.Adapter() {
-             @Override
 @@ -192,6 +192,22 @@ public final class DesktopApplicationContext extends ApplicationContext {
              }
          }
@@ -39,7 +30,7 @@ index eb23b16..7cc2c4f 100644
  
      // Native host frame
 -    private static class HostFrame extends java.awt.Frame implements TitledWindow {
-+    //David Ray : Forked change of access level (from private to protected) to this class and its extention
++    // David Ray : Forked change of access level (from private to protected) to this class and its extention
 +    //			  to javax.swing.JFrame from java.awt.Frame
 +    protected static class HostFrame extends javax.swing.JFrame implements TitledWindow {
          private static final long serialVersionUID = 5340356674429280196L;
@@ -89,10 +80,10 @@ index eb23b16..7cc2c4f 100644
          String osName = System.getProperty("os.name");
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java b/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java
 new file mode 100644
-index 0000000..b3960bb
+index 0000000..6ef36ca
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java
-@@ -0,0 +1,923 @@
+@@ -0,0 +1,943 @@
 +package org.apache.pivot.wtk;
 +
 +import java.awt.BorderLayout;
@@ -373,22 +364,26 @@ index 0000000..b3960bb
 +        return menuBar;
 +    }
 +    
-+    /* (non-Javadoc)
-+     * @see us.metaware.dtk.v2.DesktopWindow#setBorderColor(java.awt.Color)
++    /**
++     * Sets the color that will be used to paint the border.
++     * @param c		the border color
 +     */
 +    public void setBorderColor(Color c) {
 +        this.borderColor = c;
 +    }
 +    
-+    /* (non-Javadoc)
-+     * @see us.metaware.dtk.v2.DesktopWindow#getBorderColor()
++    /**
++     * Returns the color that is used to paint the border
++     * @return	the current border color
 +     */
 +    public Color getBorderColor() {
 +        return borderColor;
 +    }
 +    
-+    /* (non-Javadoc)
-+     * @see us.metaware.dtk.v2.DesktopWindow#setBorderSize(int)
++    /**
++     * Sets the size in pixels of the frame border
++     * 
++     * @param size	the frame border size.
 +     */
 +    public void setBorderSize(int size) {
 +        borderSize = size;
@@ -397,27 +392,36 @@ index 0000000..b3960bb
 +        }
 +    }
 +    
-+    /* (non-Javadoc)
-+     * @see us.metaware.dtk.v2.DesktopWindow#getBorderSize()
++    /**
++     * Returns the border size.
++     * @return	the border size.
 +     */
 +    public int getBorderSize() {
 +        return borderSize;
 +    }
 +    
-+    /* (non-Javadoc)
-+     * @see us.metaware.dtk.v2.DesktopWindow#setTitleBarHeight(int)
++    /**
++     * Sets the height in pixels of the title bar.
++     * 
++     * @param height	the height of the title bar
 +     */
 +    public void setTitleBarHeight(int height) {
 +        titleBarHeight = height;
 +    }
 +    
-+    /* (non-Javadoc)
-+     * @see us.metaware.dtk.v2.DesktopWindow#getTitleBarHeight()
++    /**
++     * Returns the title bar height
++     * 
++     * @return	the current title bar height
 +     */
 +    public int getTitleBarHeight() {
 +        return titleBarHeight;
 +    }
 +    
++    /**
++     * Returns the {@link Container} the user added to this
++     * frame.
++     */
 +    @Override
 +    public Container getContentPane() {
 +        if(userPanel == null) {
@@ -426,8 +430,8 @@ index 0000000..b3960bb
 +        return (Container)userPanel;
 +    }
 +    
-+    /* (non-Javadoc)
-+     * @see us.metaware.dtk.v2.DesktopWindow#add(java.awt.Component)
++    /**
++     * Adds a component to this frame.
 +     */
 +    @Override
 +    public Component add(Component comp) {
@@ -439,8 +443,15 @@ index 0000000..b3960bb
 +        return comp;
 +    }
 +    
-+    /* (non-Javadoc)
-+     * @see us.metaware.dtk.v2.DesktopWindow#add(java.lang.String, java.awt.Component)
++    /**
++     * Basically ignores the String argument and adds the
++     * specified component as the host container of this frame.
++     * It is generally expected that the component being added as 
++     * a replacement for the content pane, and so it is unexpected 
++     * that the user will add more than one component to this frame.
++     * 
++     * @param	s	an ignored constraint
++     * 
 +     */
 +    @Override
 +    public Component add(String s, Component comp) {
