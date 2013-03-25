@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.barchart.pivot</groupId>
 		<artifactId>barchart-pivot</artifactId>
-		<version>2.0.2-build002-SNAPSHOT</version>
+		<version>2.0.2-build003-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>pivot-core-web-server</artifactId>
