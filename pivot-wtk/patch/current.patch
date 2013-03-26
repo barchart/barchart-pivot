@@ -80,10 +80,10 @@ index eb23b16..c85a306 100644
          String osName = System.getProperty("os.name");
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java b/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java
 new file mode 100644
-index 0000000..e134121
+index 0000000..75c49b3
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java
-@@ -0,0 +1,953 @@
+@@ -0,0 +1,1016 @@
 +package org.apache.pivot.wtk;
 +
 +import java.awt.BorderLayout;
@@ -104,6 +104,7 @@ index 0000000..e134121
 +import java.awt.Toolkit;
 +import java.awt.event.MouseAdapter;
 +import java.awt.event.MouseEvent;
++import java.awt.event.MouseListener;
 +import java.awt.event.MouseMotionListener;
 +import java.awt.geom.Arc2D;
 +import java.awt.geom.Area;
@@ -115,6 +116,7 @@ index 0000000..e134121
 +import javax.swing.JFrame;
 +import javax.swing.JMenuBar;
 +import javax.swing.JPanel;
++import javax.swing.JRootPane;
 +import javax.swing.event.MouseInputAdapter;
 +
 +
@@ -183,7 +185,7 @@ index 0000000..e134121
 +        setBorderDecorated(true, true);
 +        addCursorHandler();
 +        reshapeBorders();
-+        installManager(new MouseHandler());
++        installMouseHandler(new MouseHandler());
 +        
 +        getEnvironmentInfo();
 +        
@@ -431,91 +433,86 @@ index 0000000..e134121
 +    }
 +    
 +    /**
-+     * Adds a component to this frame.
++     * Adds the component which is the parent of all other components
++     * residing within this frame of the user's ui. This frame has only one layout 
++     * manager ({@link BorderLayout}) which host's the component argument in its 
++     * {@link BorderLayout.CENTER} position. This is necessary in order to
++     * paint the frame's attributes such as left, right and bottom borders (optional), 
++     * and the title bar, which are usually handled by the windowing framework itself.
++     * 
++     * Only one component may be added to this frame, and any attempts to add subsequent
++     * components will trigger the removal of any previously added component, following
++     * this, the component added is automatically added to the center 
++     * of this frame's {@code BorderLayout}, thereby ignoring all other parameters of any
++     * other add(x, y, z) methods which delegate to this method.
++     * 
++     * @param comp	the component to add to the {@link BorderLayout.CENTER} of this frame.
 +     */
 +    @Override
 +    public Component add(Component comp) {
 +        if(userPanel != null) {
 +            mainContentPanel.remove(userPanel);
 +        }
++        if(userPanel != null) {
++        	mainContentPanel.remove(userPanel);
++        }
 +        this.userPanel = comp;
 +        mainContentPanel.add(userPanel, BorderLayout.CENTER);
 +        return comp;
 +    }
 +    
 +    /**
-+     * Basically ignores the String argument and adds the
-+     * specified component as the host container of this frame.
-+     * It is generally expected that the component being added as 
-+     * a replacement for the content pane, and so it is unexpected 
-+     * that the user will add more than one component to this frame.
-+     * 
-+     * @param	s	an ignored constraint
-+     * 
++     * Delegates to {@link #add(Component)}.
++     * @see DesktopFrame#add(Component)
 +     */
 +    @Override
 +    public Component add(String s, Component comp) {
-+        if(userPanel != null) {
-+            mainContentPanel.remove(userPanel);
-+        }
-+        this.userPanel = comp;
-+        mainContentPanel.add(userPanel, BorderLayout.CENTER);
-+        return comp;
++        return add(comp);
 +    }
 +    
 +    /**
-+     * Adds a component which is the parent of all other components
-+     * in the user's ui. This frame has only one layout manager ({@link BorderLayout})
-+     * which host's the component argument in its {@link BorderLayout.CENTER} position.
-+     * Only one component may be added to this frame, and the component added is
-+     * automatically added to the center of this frame's {@code BorderLayout}, thereby
-+     * ignoring all other parameters.
++     * Delegates to {@link #add(Component)}.
++     * @see DesktopFrame#add(Component)
 +     */
 +    @Override
 +    public Component add(Component comp, int index) {
-+        if(userPanel != null) {
-+            mainContentPanel.remove(userPanel);
-+        }
-+        this.userPanel = comp;
-+        mainContentPanel.add(userPanel, BorderLayout.CENTER);
-+        return comp;
++    	//Delegate to add(Component comp) method
++        return add(comp);
 +    }
 +    
-+    /* (non-Javadoc)
-+     * @see us.metaware.dtk.v2.DesktopWindow#add(java.awt.Component, java.lang.Object)
++    /**
++     * Delegates to {@link #add(Component)} - except for
++     * the addition of the {@link JRootPane}
++     * @see DesktopFrame#add(Component)
 +     */
 +    @Override
 +    public void add(Component comp, Object constraints) {
-+        if(mainContentPanel == null) {
++        if(JRootPane.class.isAssignableFrom(comp.getClass())) {
 +            super.add(comp, constraints);
-+            try {
-+            	mainContentPanel = (JComponent)comp;
-+            }catch(ClassCastException c) {
-+            	throw new IllegalArgumentException("Can only add decendant of JComponent", c);
-+            }
 +            return;
 +        }
-+        if(userPanel != null) {
-+            mainContentPanel.remove(userPanel);
-+        }
-+        this.userPanel = comp;
-+        mainContentPanel.add(userPanel, BorderLayout.CENTER);
++        //Delegate to add(Component comp) method
++        add(comp);
 +    }
 +
-+    /* (non-Javadoc)
-+     * @see us.metaware.dtk.v2.DesktopWindow#add(java.awt.Component, java.lang.Object, int)
++    /**
++     * Delegates to {@link #add(Component)}.
++     * @see DesktopFrame#add(Component)
 +     */
 +    @Override
 +    public void add(Component comp, Object constraints, int index) {
-+        if(userPanel != null) {
-+            mainContentPanel.remove(userPanel);
-+        }
-+        this.userPanel = comp;
-+        mainContentPanel.add(userPanel, BorderLayout.CENTER);
++    	//Delegate to add(Component comp) method
++    	add(comp);
 +    }
 +    
-+    /* (non-Javadoc)
-+     * @see us.metaware.dtk.v2.DesktopWindow#setLeftBorderComponent(javax.swing.JComponent)
++    /**
++     * Sets the component representing the left ({@link BorderLayout#WEST})
++     * frame border. All border components have a default which is automatically
++     * installed and can have their size and color altered. For any (more
++     * complex) painting, it is necessary for the user to install their own
++     * component (i.e. Gradients etc.)
++     * 
++     * @param c	the component painting the left border.
 +     */
 +    public void setLeftBorderComponent(JComponent c) {
 +        if(!isBorderDecorated) {
@@ -525,8 +522,14 @@ index 0000000..e134121
 +        mainContentPanel.add(leftBorderComponent, BorderLayout.WEST);
 +    }
 +    
-+    /* (non-Javadoc)
-+     * @see us.metaware.dtk.v2.DesktopWindow#setRightBorderComponent(javax.swing.JComponent)
++    /**
++     * Sets the component representing the left ({@link BorderLayout#EAST})
++     * frame border. All border components have a default which is automatically
++     * installed and can have their size and color altered. For any (more
++     * complex) painting, it is necessary for the user to install their own
++     * component (i.e. Gradients etc.)
++     * 
++     * @param c	the component painting the left border.
 +     */
 +    public void setRightBorderComponent(JComponent c) {
 +        if(!isBorderDecorated) {
@@ -536,8 +539,14 @@ index 0000000..e134121
 +        mainContentPanel.add(rightBorderComponent, BorderLayout.EAST);
 +    }
 +    
-+    /* (non-Javadoc)
-+     * @see us.metaware.dtk.v2.DesktopWindow#setBottomBorderComponent(javax.swing.JComponent)
++    /**
++     * Sets the component representing the left ({@link BorderLayout#SOUTH})
++     * frame border. All border components have a default which is automatically
++     * installed and can have their size and color altered. For any (more
++     * complex) painting, it is necessary for the user to install their own
++     * component (i.e. Gradients etc.)
++     * 
++     * @param c	the component painting the left border.
 +     */
 +    public void setBottomBorderComponent(JComponent c) {
 +        if(!isBorderDecorated) {
@@ -547,8 +556,14 @@ index 0000000..e134121
 +        mainContentPanel.add(bottomBorderComponent, BorderLayout.SOUTH);
 +    }
 +    
-+    /* (non-Javadoc)
-+     * @see us.metaware.dtk.v2.DesktopWindow#setBorderDecorated(boolean, boolean)
++    /**
++     * Sets the flag indicating whether borders should be painted around this frame.
++     * Additionally, the user may also specify whether the default borders should 
++     * be installed.
++     * 
++     * @param b						border decorated flag.
++     * @param useDefaultBorders		flag indicating the desire to use the default 
++     * 								borders.
 +     */
 +    public void setBorderDecorated(boolean b, boolean useDefaultBorders) {
 +        this.isBorderDecorated = b;
@@ -652,7 +667,7 @@ index 0000000..e134121
 +    private void addMainContentPanel(JPanel panel) {
 +        this.mainContentPanel = panel;
 +        this.mainContentPanel.setOpaque(true);
-+        add(mainContentPanel, BorderLayout.CENTER);
++        super.add(mainContentPanel, BorderLayout.CENTER);
 +    }
 +    
 +   /**
@@ -701,8 +716,14 @@ index 0000000..e134121
 +        setBottomBorderComponent(bBorder);
 +    }
 +    
++    /**
++     * Installs the handler which controls the cursor changes
++     * for border or titlebar mouse overs.
++     */
 +    private void addCursorHandler() {
-+        cursorManager = new CursorManager();
++    	if(cursorHandlerInstalled()) return;
++    	
++    	cursorManager = new CursorManager();
 +        titleBar.addMouseListener(cursorManager);
 +        titleBar.addMouseMotionListener(cursorManager);
 +        if(leftBorderComponent != null) {
@@ -720,9 +741,25 @@ index 0000000..e134121
 +    }
 +    
 +    /**
-+     * {@inheritDoc}
++     * Checks for the prior installation of the {@link DesktopFrame.CursorManager}.
++     * 
++     * @return	true if already installed, false if not.
 +     */
-+    public void installManager(MouseHandler manager) {
++    private boolean cursorHandlerInstalled() {
++    	MouseListener[] installedListeners = titleBar.getMouseListeners();
++    	for(MouseListener l : installedListeners) {
++    		if(l instanceof CursorManager) {
++    			return true;
++    		}
++    	}
++    	return false;
++    }
++    
++    /**
++     * Installs the main mouse controller which handles the frame movement, etc.
++     * @param manager	
++     */
++    public void installMouseHandler(MouseHandler manager) {
 +        titleBar.addMouseListener(manager);
 +        titleBar.addMouseMotionListener(manager);
 +        
@@ -741,9 +778,9 @@ index 0000000..e134121
 +    }
 +    
 +    /**
-+     * {@inheritDoc}
++     * Uninstalls the mouse controller.
 +     */
-+    public void uninstallManager(MouseHandler manager) {
++    public void uninstallMouseHandler(MouseHandler manager) {
 +        titleBar.removeMouseListener(manager);
 +        titleBar.removeMouseMotionListener(manager);
 +        if(leftBorderComponent != null) {
@@ -760,6 +797,12 @@ index 0000000..e134121
 +        }
 +    }
 +    
++    /**
++     * Dynamically alters the cursor being displayed depending on the
++     * current mouse location.
++     * 
++     * @param side
++     */
 +    private void setCursorForSide(Side side) {
 +        switch(side) {
 +            case N : setCursor(Cursor.getPredefinedCursor(Cursor.N_RESIZE_CURSOR)); break;
@@ -774,6 +817,12 @@ index 0000000..e134121
 +        }
 +    }
 +    
++    /**
++     * Class which listens to mouse movements and alters the cursor to 
++     * the appropriate cursor for the given mouse location.
++     * 
++     * @author David Ray
++     */
 +    class CursorManager extends MouseInputAdapter {
 +        private boolean isPressed;
 +        
@@ -897,6 +946,7 @@ index 0000000..e134121
 +    		int xAmount = (p.x - startPoint.x);
 +    		int yAmount = (p.y - startPoint.y);
 +    		DesktopFrame.this.isResizing = !isMoveOp(startSide);
++    		
 +    		Rectangle prev = frameRect;
 +    		frameRect = DesktopFrame.this.isResizing ? 
 +    			resizeRectangle(frameRect, startSide, xAmount, yAmount) :
@@ -967,6 +1017,13 @@ index 0000000..e134121
 +    	}
 +    }
 +    
++    /**
++     * Class which represents the controls on a given title bar such as 
++     * minimize, maximize, and close.
++     * 
++     * @author David Ray
++     *@see TitleBarControl
++     */
 +    class DefaultTitleBarControl extends TitleBarControl {
 +    	private double rotationAngle = 0.0d;
 +    	private BufferedImage logo = createLogo(Color.DARK_GRAY, new Color(202, 202, 202));
@@ -1032,6 +1089,12 @@ index 0000000..e134121
 +    	}
 +    }
 +    
++    /**
++     * Defines methods which make available notifications regarding
++     * the stop and start of drag operations.
++     * 
++     * @author David Ray
++     */
 +    public static interface DragListener {
 +    	public void windowDragged(Point oldLoc, Point newLoc);
 +    	public void draggingStopped();
