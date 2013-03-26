@@ -80,10 +80,10 @@ index eb23b16..c85a306 100644
          String osName = System.getProperty("os.name");
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java b/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java
 new file mode 100644
-index 0000000..6ef36ca
+index 0000000..e134121
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java
-@@ -0,0 +1,943 @@
+@@ -0,0 +1,953 @@
 +package org.apache.pivot.wtk;
 +
 +import java.awt.BorderLayout;
@@ -131,7 +131,7 @@ index 0000000..6ef36ca
 +    /** The default height of the title bar */
 +    private int titleBarHeight = 22;
 +    /** The main content panel housing the user content */
-+    private JPanel mainContentPanel;
++    private JComponent mainContentPanel;
 +    /** The left border component which detects mouse events for cursor manipulation and resizing */
 +    private JComponent leftBorderComponent;
 +    /** The right border component which detects mouse events for cursor manipulation and resizing */
@@ -463,8 +463,13 @@ index 0000000..6ef36ca
 +        return comp;
 +    }
 +    
-+    /* (non-Javadoc)
-+     * @see us.metaware.dtk.v2.DesktopWindow#add(java.awt.Component, int)
++    /**
++     * Adds a component which is the parent of all other components
++     * in the user's ui. This frame has only one layout manager ({@link BorderLayout})
++     * which host's the component argument in its {@link BorderLayout.CENTER} position.
++     * Only one component may be added to this frame, and the component added is
++     * automatically added to the center of this frame's {@code BorderLayout}, thereby
++     * ignoring all other parameters.
 +     */
 +    @Override
 +    public Component add(Component comp, int index) {
@@ -483,6 +488,11 @@ index 0000000..6ef36ca
 +    public void add(Component comp, Object constraints) {
 +        if(mainContentPanel == null) {
 +            super.add(comp, constraints);
++            try {
++            	mainContentPanel = (JComponent)comp;
++            }catch(ClassCastException c) {
++            	throw new IllegalArgumentException("Can only add decendant of JComponent", c);
++            }
 +            return;
 +        }
 +        if(userPanel != null) {
@@ -642,7 +652,7 @@ index 0000000..6ef36ca
 +    private void addMainContentPanel(JPanel panel) {
 +        this.mainContentPanel = panel;
 +        this.mainContentPanel.setOpaque(true);
-+        super.add(mainContentPanel, BorderLayout.CENTER);
++        add(mainContentPanel, BorderLayout.CENTER);
 +    }
 +    
 +   /**
