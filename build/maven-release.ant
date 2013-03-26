@@ -13,20 +13,9 @@
 
 		<exec executable="${executable}">
 
-			<arg value="validate" />
-			
 			<arg value="release:clean" />
 			<arg value="release:prepare" />
 			<arg value="release:perform" />
-
-			<arg value="--activate-profiles" />
-			<arg value="clean,clone,copy,patch,release" />
-
-			<arg value="--define" />
-			<arg value="resume=false" />
-
-			<arg value="--define" />
-			<arg value="arguments=--define skipTests" />
 
 		</exec>
 
