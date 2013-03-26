@@ -106,6 +106,7 @@
 				<artifactId>maven-source-plugin</artifactId>
 				<executions>
 					<execution>
+						<!-- Override default execution. -->
 						<id>attach-sources</id>
 						<goals>
 							<goal>jar-no-fork</goal>
