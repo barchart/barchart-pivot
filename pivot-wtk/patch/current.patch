@@ -1097,12 +1097,13 @@ index 0000000..01d3006
 +}
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/OSXTitleBar.java b/pivot-wtk/src/org/apache/pivot/wtk/OSXTitleBar.java
 new file mode 100644
-index 0000000..1f880c2
+index 0000000..42af10a
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/OSXTitleBar.java
-@@ -0,0 +1,292 @@
+@@ -0,0 +1,416 @@
 +package org.apache.pivot.wtk;
 +
++import java.awt.AWTEvent;
 +import java.awt.BasicStroke;
 +import java.awt.Color;
 +import java.awt.Dimension;
@@ -1115,11 +1116,15 @@ index 0000000..1f880c2
 +import java.awt.Rectangle;
 +import java.awt.RenderingHints;
 +import java.awt.Stroke;
++import java.awt.Toolkit;
++import java.awt.event.AWTEventListener;
 +import java.awt.event.MouseAdapter;
 +import java.awt.event.MouseEvent;
 +import java.awt.geom.AffineTransform;
 +import java.awt.geom.Point2D;
 +import java.awt.geom.Rectangle2D;
++import java.util.ArrayList;
++import java.util.List;
 +
 +import javax.swing.JFrame;
 +import javax.swing.SwingUtilities;
@@ -1127,10 +1132,20 @@ index 0000000..1f880c2
 +
 +@SuppressWarnings("serial")
 +public class OSXTitleBar extends TitleBar {
++	List<IconizeListener> iconizeListeners = new ArrayList<IconizeListener>();
 +	
 +	public OSXTitleBar() {
-+		
 +		addTitleBarControl(createTitleBarControl());
++	}
++	
++	public void addIconizeListener(IconizeListener l) {
++		if(l != null) {
++			iconizeListeners.add(l);
++		}
++	}
++	
++	public void removeIconizeListener(IconizeListener l) {
++		iconizeListeners.remove(l);
 +	}
 +	
 +	@Override
@@ -1185,7 +1200,10 @@ index 0000000..1f880c2
 +    	private Rectangle2D maximizeRect;
 +    	private Rectangle2D closeRect;
 +    	
-+    	private boolean mouseOverClose;
++    	private boolean mouseOverControl;
++    	private boolean maskMinimized;
++    	private boolean maskMaximized;
++    	private boolean maskClosed;
 +    	
 +    	private JFrame hostFrame;
 +    	
@@ -1247,14 +1265,17 @@ index 0000000..1f880c2
 +    		g2.setPaint(old);
 +    		g2.setStroke(oldStroke);
 +    		
-+    		if(mouseOverClose) {
-+    			g2.setColor(new Color(115, 84, 47));
++    		if(mouseOverControl) {
++    			g2.setColor(new Color(119,19,17));//90,11,10 -=-  119,19,17
 +    			g2.setStroke(new BasicStroke(2));
-+    			int third = (int)closeRect.getWidth() / 3;
 +    			g2.drawLine((int)closeRect.getX() + 3, (int)closeRect.getY() + 3, (int)closeRect.getMaxX() - 3, (int)closeRect.getMaxY() - 3);
-+    			//g2.drawLine((int)closeRect.getX() + 5, (int)closeRect.getMaxY() + 5, (int)closeRect.getMaxX() - 5, (int)closeRect.getY() + 5);
-+    			g2.draw(closeRect);
++    			g2.drawLine((int)closeRect.getX() + 3, (int)closeRect.getMaxY() - 3, (int)closeRect.getMaxX() - 3, (int)closeRect.getY() + 3);
 +    			g2.setStroke(oldStroke);
++    		}
++    		
++    		if(maskClosed) {
++    			g2.setColor(new Color(0,0,0,75));
++    			g2.fillOval((int)closeRect.getX() + 1, (int)closeRect.getY() + 1, (int)closeRect.getWidth(), (int)closeRect.getHeight() - 1);
 +    		}
 +    	}
 +    	
@@ -1290,6 +1311,18 @@ index 0000000..1f880c2
 +    		
 +    		g2.setPaint(old);
 +    		g2.setStroke(oldStroke);
++    		
++    		if(mouseOverControl) {
++    			g2.setColor(new Color(102,36,0));
++    			g2.drawLine((int)minimizeRect.getX() + 2, (int)minimizeRect.getCenterY(), (int)minimizeRect.getMaxX() - 2, (int)minimizeRect.getCenterY());
++    			g2.setColor(new Color(166,99,1));
++    			g2.drawLine((int)minimizeRect.getX() + 2, (int)minimizeRect.getCenterY() + 1, (int)minimizeRect.getMaxX() - 2, (int)minimizeRect.getCenterY() + 1);
++    		}
++    		
++    		if(maskMinimized) {
++    			g2.setColor(new Color(0,0,0,75));
++    			g2.fillOval((int)minimizeRect.getX() + 1, (int)minimizeRect.getY() + 1, (int)minimizeRect.getWidth(), (int)minimizeRect.getHeight() - 1);
++    		}
 +    	}
 +    	
 +    	private void paintGreenButton(Graphics2D g2) {
@@ -1324,6 +1357,24 @@ index 0000000..1f880c2
 +    		
 +    		g2.setPaint(old);
 +    		g2.setStroke(oldStroke);
++    		
++    		if(mouseOverControl) {
++    			g2.setColor(new Color(0,53,-0));
++    			g2.setStroke(new BasicStroke(1));
++    			g2.drawLine((int)maximizeRect.getX() + 2, (int)maximizeRect.getCenterY(), (int)maximizeRect.getMaxX() - 2, (int)maximizeRect.getCenterY());
++    			g2.setColor(new Color(45,118,0));
++    			g2.drawLine((int)maximizeRect.getX() + 2, (int)maximizeRect.getCenterY() + 1, (int)maximizeRect.getMaxX() - 2, (int)maximizeRect.getCenterY() + 1);
++    			g2.setStroke(new BasicStroke(2));
++    			g2.setColor(new Color(0,53,-0));
++    			g2.drawLine((int)maximizeRect.getCenterX(), (int)maximizeRect.getY() + 2, (int)maximizeRect.getCenterX(), (int)maximizeRect.getY() + 3);
++    			g2.setColor(new Color(45,118,0));
++    			g2.drawLine((int)maximizeRect.getCenterX(), (int)maximizeRect.getY() + 3, (int)maximizeRect.getCenterX(), (int)maximizeRect.getMaxY() - 2);
++    		}
++    		
++    		if(maskMaximized) {
++    			g2.setColor(new Color(0,0,0,75));
++    			g2.fillOval((int)maximizeRect.getX() + 1, (int)maximizeRect.getY() + 1, (int)maximizeRect.getWidth(), (int)maximizeRect.getHeight() - 1);
++    		}
 +    	}
 +    	
 +    	private void createControlShapes() {
@@ -1334,42 +1385,105 @@ index 0000000..1f880c2
 +    	}
 +    	
 +    	private void installListeners() {
++    		final Rectangle2D localCloseRect = new Rectangle2D.Double(
++				closeRect.getX() - 4, closeRect.getY() - 4, 
++					closeRect.getWidth() + 8, closeRect.getHeight() + 8);
++			final Rectangle2D localMinimizeRect = new Rectangle2D.Double(
++				minimizeRect.getX() - 4, minimizeRect.getY() - 4, 
++					minimizeRect.getWidth() + 8, minimizeRect.getHeight() + 8);
++			final Rectangle2D localMaximizeRect = new Rectangle2D.Double(
++				maximizeRect.getX() - 4, maximizeRect.getY() - 4, 
++					maximizeRect.getWidth() + 8, maximizeRect.getHeight() + 8);
++			
++			Toolkit.getDefaultToolkit().addAWTEventListener(new AWTEventListener() {
++				 public void eventDispatched(AWTEvent e) {
++					 if(e.getID() == MouseEvent.MOUSE_RELEASED && mouseOverControl) {
++						 maskMinimized = maskMaximized = maskClosed = mouseOverControl = false;
++						 repaint();
++					 }
++				 }
++			}, AWTEvent.MOUSE_EVENT_MASK);
++    			
 +    		addMouseListener(new MouseAdapter() {
-+    			public void mousePressed(MouseEvent e) {
-+    				if(minimizeRect.contains(e.getPoint())) {
++    			public void mouseReleased(MouseEvent e) {
++    				if(localMinimizeRect.contains(e.getPoint())) {
 +    					hostFrame.setExtendedState(JFrame.ICONIFIED);
-+    				}else if(maximizeRect.contains(e.getPoint())) {
++    				}else if(localMaximizeRect.contains(e.getPoint())) {
 +    					if((hostFrame.getExtendedState() & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH) {
 +    						hostFrame.setExtendedState(JFrame.NORMAL);
 +    					}else{
 +    						hostFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
 +    					}
-+    				}else if(closeRect.contains(e.getPoint())) {
++    				}else if(localCloseRect.contains(e.getPoint())) {
 +    					System.exit(0);
++    				}
++    				maskMinimized = maskMaximized = maskClosed = false;
++    				repaint();
++    			}
++    			public void mousePressed(MouseEvent m) {
++    				java.awt.Point p = m.getPoint();
++    				if(localCloseRect.contains(p)) {
++						maskClosed = true;
++						maskMinimized = false;
++						maskMaximized = false;
++					}else if(localMinimizeRect.contains(p)) {
++						maskClosed = false;
++						maskMinimized = true;
++						maskMaximized = false;
++					}else if(localMaximizeRect.contains(p)) {
++						maskClosed = false;
++						maskMinimized = false;
++						maskMaximized = true;
++					}
++    				repaint();
++    			}
++    		});
++    		OSXTitleBarControl.this.addMouseMotionListener(new MouseAdapter() {
++    			public void mouseMoved(MouseEvent m) {
++    				java.awt.Point p = m.getPoint();
++    				if(localCloseRect.contains(p) || localMinimizeRect.contains(p) || localMaximizeRect.contains(p)) {
++    					mouseOverControl = true;
++    				}else{
++    					mouseOverControl = false;
++    					maskClosed = false;
++						maskMinimized = false;
++						maskMaximized = false;
++    				}
++    				repaint();
++    			}
++    			public void mouseDragged(MouseEvent m) {
++    				java.awt.Point p = m.getPoint();
++    				if(localCloseRect.contains(p) || localMinimizeRect.contains(p) || localMaximizeRect.contains(p)) {
++    					mouseOverControl = true;
++    				}else{
++    					maskClosed = false;
++						maskMinimized = false;
++						maskMaximized = false;
++						repaint();
 +    				}
 +    			}
 +    		});
-+    		addMouseMotionListener(new MouseAdapter() {
-+    			Rectangle2D localCloseRect = new Rectangle2D.Double(
-+    				closeRect.getX() - 4, closeRect.getY() - 4, 
-+    					closeRect.getWidth() + 8, closeRect.getHeight() + 8);
-+    			Rectangle2D localMinimizeRect = new Rectangle2D.Double(
-+    				minimizeRect.getX() - 4, minimizeRect.getY() - 4, 
-+    					minimizeRect.getWidth() + 8, minimizeRect.getHeight() + 8);
-+    			Rectangle2D localMaximizeRect = new Rectangle2D.Double(
-+    				maximizeRect.getX() - 4, maximizeRect.getY() - 4, 
-+    					maximizeRect.getWidth() + 8, maximizeRect.getHeight() + 8);
-+    			public void mouseMoved(MouseEvent e) {
-+    				if(localMinimizeRect.contains(e.getPoint())) {
-+    					mouseOverClose = false;
-+    				}else if(localMaximizeRect.contains(e.getPoint())) {
-+    					mouseOverClose = false;
-+    				}else if(localCloseRect.contains(e.getPoint())) {
-+    					mouseOverClose = true;
-+    				}else{
-+    					mouseOverClose = false;
++    		OSXTitleBar.this.addMouseMotionListener(new MouseAdapter() {
++    			public void mouseMoved(MouseEvent m) {
++    				boolean prev = mouseOverControl;
++    				mouseOverControl = false;
++    				maskClosed = false;
++					maskMinimized = false;
++					maskMaximized = false;
++    				if(prev) {
++    					repaint();
 +    				}
-+    				repaint();
++    			}
++    			public void mouseDragged(MouseEvent m) {
++    				java.awt.Point p = m.getPoint();
++    				if(localCloseRect.contains(p) || localMinimizeRect.contains(p) || localMaximizeRect.contains(p)) {
++    					mouseOverControl = true;
++    				}else{
++    					maskClosed = false;
++						maskMinimized = false;
++						maskMaximized = false;
++						repaint();
++    				}
 +    			}
 +    		});
 +    	}
@@ -1390,6 +1504,16 @@ index 0000000..1f880c2
 +    			}
 +    		}).start();
 +    	}
++	}
++	
++	/**
++	 * Listened to by those classes wishing to be informed
++	 * when this {@link TitleBar}'s frame will be iconized.
++	 * 
++	 * @author David Ray
++	 */
++	public interface IconizeListener {
++		public void frameWillIconize();
 +	}
 +
 +}
