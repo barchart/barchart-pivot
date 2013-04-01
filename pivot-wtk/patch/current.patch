@@ -80,7 +80,7 @@ index eb23b16..948d829 100644
          String osName = System.getProperty("os.name");
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java b/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java
 new file mode 100644
-index 0000000..43cd0ee
+index 0000000..c5994d8
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java
 @@ -0,0 +1,1152 @@
@@ -239,7 +239,7 @@ index 0000000..43cd0ee
 +        
 +        //Use Reflection to check if translucent windows are available,
 +        //and if so, enable translucent windows for Windows 7 like frames.
-+        execSetOpacityMethod();
++        //execSetOpacityMethod();
 +    }
 +    
 +    /**
