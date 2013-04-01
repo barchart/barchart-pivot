@@ -1,11 +1,12 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
 		<groupId>com.barchart.base</groupId>
 		<artifactId>barchart-archon</artifactId>
-		<version>2.5.2</version>
+		<version>2.5.6</version>
 	</parent>
 
 	<groupId>com.barchart.pivot</groupId>
@@ -17,7 +18,7 @@
 		<url>https://github.com/barchart/barchart-pivot</url>
 		<connection>scm:git:git://github.com/barchart/barchart-pivot.git</connection>
 		<developerConnection>scm:git:ssh://git@github.com/barchart/barchart-pivot.git</developerConnection>
-		<tag>HEAD</tag>
+		<tag>master</tag>
 	</scm>
 
 	<modules>
@@ -269,6 +270,7 @@
 									<goal>execute</goal>
 								</goals>
 								<configuration>
+									<providerSelection>2.0</providerSelection>
 									<source>
 		<![CDATA[
 		// Layout convention.
@@ -287,20 +289,21 @@
 		}
 
 		// Invoke git apply.		
-		def command = [ "git", "apply", "--verbose" ] + fileList
-		println "### Patch command: ${command}"
-		def processBuilder = new ProcessBuilder(command)
-		processBuilder.directory(baseDir)
-		def process = processBuilder.start(); process.waitFor()
+		def command = ([ "git", "apply", "--verbose" ] + fileList).join(" ")
+		println "### Git command: ${command}"
+		def process = command.execute(null, baseDir) 
+		def std = new StringBuilder()
+		def err = new StringBuilder()
+		process.waitForProcessOutput(std, err)
 
 		// Process standard output is not used.
-		def patchText = "${process.in.text}"
+		def patchText = std.toString()
 		 
 		// Process error output contains status messages.
-		def errorText = "${process.err.text}"
+		def errorText = err.toString()
 		println "${errorText}"
 		
-		if(errorText.startsWith("error:") || errorText.startsWith("fatal:")){
+		if(errorText.contains("error:") || errorText.contains("fatal:")){
 			throw new Exception("Git failed, see messages above. ")
 		}
 		]]>
@@ -333,6 +336,7 @@
 									<goal>execute</goal>
 								</goals>
 								<configuration>
+									<providerSelection>2.0</providerSelection>
 									<source>
 		<![CDATA[
 		// Do not generate patches for parent project.		
@@ -351,20 +355,21 @@
 		def target = "src"
 	
 		// Invoke git diff.	
-		def command = [ "git", "diff", "--relative", "--no-index",  "--", source, target ]
-		println "### Patch command: ${command}"
-		def processBuilder = new ProcessBuilder(command)
-		processBuilder.directory(baseDir)
-		def process = processBuilder.start(); process.waitFor()
-		
-		// Process standard output contains patch.
-		def patchText = "${process.in.text}"
+		def command = [ "git", "diff", "--relative", "--no-index",  "--", source, target ].join(" ")
+		println "### Git command: ${command}"
+		def process = command.execute(null, baseDir) 
+		def std = new StringBuilder()
+		def err = new StringBuilder()
+		process.waitForProcessOutput(std, err)
+
+		// Process standard output contains the patch.
+		def patchText = std.toString()
 		 
 		// Process error output contains status messages.
-		def errorText = "${process.err.text}" 
+		def errorText = err.toString() 
 		println "${errorText}"
 		
-		if(errorText.startsWith("error:") || errorText.contains("fatal:")) {
+		if(errorText.contains("error:") || errorText.contains("fatal:")) {
 			throw new Exception("Git failed, see error messages above.")
 		}
 
