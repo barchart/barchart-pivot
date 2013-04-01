@@ -1,5 +1,5 @@
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/DesktopApplicationContext.java b/pivot-wtk/src/org/apache/pivot/wtk/DesktopApplicationContext.java
-index eb23b16..c85a306 100644
+index eb23b16..948d829 100644
 --- a/pivot-wtk/src/org/apache/pivot/wtk/DesktopApplicationContext.java
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/DesktopApplicationContext.java
 @@ -192,6 +192,22 @@ public final class DesktopApplicationContext extends ApplicationContext {
@@ -32,7 +32,7 @@ index eb23b16..c85a306 100644
 -    private static class HostFrame extends java.awt.Frame implements TitledWindow {
 +    // David Ray : Forked change of access level (from private to protected) to this class and its extention
 +    //			  to javax.swing.JFrame from java.awt.Frame
-+    protected static class HostFrame extends javax.swing.JFrame implements TitledWindow {
++    public static class HostFrame extends javax.swing.JFrame implements TitledWindow {
          private static final long serialVersionUID = 5340356674429280196L;
  
          public HostFrame() {
@@ -80,10 +80,10 @@ index eb23b16..c85a306 100644
          String osName = System.getProperty("os.name");
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java b/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java
 new file mode 100644
-index 0000000..01d3006
+index 0000000..43cd0ee
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java
-@@ -0,0 +1,1011 @@
+@@ -0,0 +1,1152 @@
 +package org.apache.pivot.wtk;
 +
 +import java.awt.BasicStroke;
@@ -110,8 +110,10 @@ index 0000000..01d3006
 +import java.awt.geom.Area;
 +import java.awt.geom.Rectangle2D;
 +import java.awt.image.BufferedImage;
++import java.lang.reflect.Method;
 +import java.util.ArrayList;
 +import java.util.List;
++import java.util.Locale;
 +
 +import javax.swing.JComponent;
 +import javax.swing.JFrame;
@@ -130,10 +132,52 @@ index 0000000..01d3006
 + */
 +@SuppressWarnings("serial")
 +public class DesktopFrame extends DesktopApplicationContext.HostFrame {
++	public enum Style { 
++		NATIVE_OSX, NATIVE_WIN, NATIVE_LINUX, CUSTOM, DEFAULT;
++		
++		public void apply(DesktopFrame frame) {
++			frame.removeTitleBar();
++			
++			switch(this) {
++		        case NATIVE_LINUX:
++		        case NATIVE_WIN: {
++		        	frame.titleBarHeight = WIN_TITLEBAR_HEIGHT;
++		        	frame.setTitleBar(frame.createTitleBar(this));
++		        	frame.setBorderSize(5);
++		        	Color ltBlue = new Color(111, 149, 191, 140);
++		        	frame.setBorderColor(ltBlue);
++		            frame.setBorderDecorated(true, true);
++		        	break;
++		        }
++		        case NATIVE_OSX: {
++		        	frame.titleBarHeight = OSX_TITLEBAR_HEIGHT;
++		        	frame.setTitleBar(frame.createTitleBar(this));
++		            frame.setBorderDecorated(true, true);
++		        	break;
++		        }
++		        case CUSTOM: {
++		        	//break;
++		        }
++		        default: {
++		        	frame.titleBarHeight = DEFAULT_TITLEBAR_HEIGHT;
++		        	frame.setTitleBar(frame.createTitleBar(this));
++		            frame.setBorderDecorated(true, true);
++		            break;
++		        }
++	        }
++		}
++	};
++	
++	private static final int OSX_TITLEBAR_HEIGHT = 22;
++	private static final int WIN_TITLEBAR_HEIGHT = 25;
++	private static final int LINUX_TITLEBAR_HEIGHT = 25;
++	private static final int DEFAULT_TITLEBAR_HEIGHT = 25;
++	private static boolean NATIVE_STYLE_OVERRIDE;
++	
 +    /** The JComponent shown as the title bar decoration */
 +    private TitleBar titleBar;
 +    /** The default height of the title bar */
-+    private int titleBarHeight = 22;
++    private int titleBarHeight;
 +    /** The main content panel housing the user content */
 +    private JComponent mainContentPanel;
 +    /** The left border component which detects mouse events for cursor manipulation and resizing */
@@ -165,8 +209,8 @@ index 0000000..01d3006
 +    private boolean isDragging;
 +    private boolean isResizing;
 +    
-+    private List<DragListener> dragListeners = new ArrayList<DragListener>();
 +    
++    private List<DragListener> dragListeners = new ArrayList<DragListener>();
 +    
 +    
 +    
@@ -177,18 +221,53 @@ index 0000000..01d3006
 +     * @param gc        the GraphicsConfiguration to be used.
 +     */
 +    public DesktopFrame() {
-+        setUndecorated(true);
++        this(NATIVE_STYLE_OVERRIDE ? Style.CUSTOM : getNativeStyle());
++    }
++    
++    public DesktopFrame(Style style) {
++    	getRootPane().putClientProperty("Window.alpha", new Float(1));
++    	setUndecorated(true);
 +        super.setLayout(new BorderLayout());
-+        setTitleBar(createTitleBar());
 +        
-+        getRootPane().putClientProperty("Window.alpha", new Float(1));
-+        
-+        //The following 3 lines are temporary as location/size info for development.
 +        JPanel p = createMainContentPanel();
 +        addMainContentPanel(p);
-+        setBorderDecorated(true, true);
++        
++        style.apply(this);
++        
 +        reshapeBorders();
-+        getEnvironmentInfo();   
++        getEnvironmentInfo();  
++        
++        //Use Reflection to check if translucent windows are available,
++        //and if so, enable translucent windows for Windows 7 like frames.
++        execSetOpacityMethod();
++    }
++    
++    /**
++     * Use Reflection to check if translucent windows are available,
++     * and if so, enable translucent windows for Windows 7 like frames.
++     * execSetOpacityMethod();
++     */
++    private void execSetOpacityMethod() {
++    	String version = System.getProperty("java.version");
++    	if(Integer.parseInt(version.split("\\.")[1]) >= 7) {
++	        try {
++	        	Method setOpacityMethod = JFrame.class.getMethod("setOpacity", new Class[] { Float.TYPE });
++	        	setOpacityMethod.invoke(this, new Object[] { new Float(0.7f) });
++	        }catch(Exception e) {
++	        	e.printStackTrace();
++	        }
++    	}
++    }
++    
++    /**
++     * If a custom style (i.e. non-native prebuilt style) is desired
++     * this method must be called with "true" before this frame
++     * is instantiated.
++     * 
++     * @param b
++     */
++    public static void overrideNativeStyle(boolean b) {
++    	DesktopFrame.NATIVE_STYLE_OVERRIDE = b;
 +    }
 +    
 +    /**
@@ -250,6 +329,26 @@ index 0000000..01d3006
 +    }
 +    
 +    /**
++     * Checks the os system property for the current os and
++     * returns an enum specifying a style for that particular
++     * os.
++     * 
++     * @return	{@link Style}
++     */
++    private static Style getNativeStyle() {
++    	String osName = System.getProperty("os.name");
++
++        if (osName.toLowerCase(Locale.ENGLISH).startsWith("mac os x")) {
++        	return Style.NATIVE_OSX;
++        }else if(osName.toLowerCase(Locale.ENGLISH).startsWith("window")) {
++        	return Style.NATIVE_WIN;
++        }else if(osName.toLowerCase(Locale.ENGLISH).startsWith("linux")) {
++        	return Style.NATIVE_LINUX;
++        }
++        return Style.DEFAULT;
++    }
++    
++    /**
 +     * Protects against a frame location being out of aggregate
 +     * device bounds by repositioning the upper left corner of a
 +     * frame that is out of virtual device bounds to be within
@@ -298,12 +397,32 @@ index 0000000..01d3006
 +    	return closest;
 +    }
 +    
++    /**
++     * Sets the location of this {@link DesktopFrame}
++     * 
++     * Native frames would know their screen bounds, but 
++     * because this is a custom frame, we must intercept this
++     * call to make sure that the location is a valid one.
++     * 
++     * @param	x	x location
++     * @param	y   y location
++     * 
++     */
 +    @Override
 +    public void setLocation(int x, int y) {
 +    	Point p = getValidLocationFor(new Point(x, y));
 +    	super.setLocation(p.x, p.y);
 +    }
 +    
++    /**
++     * Sets the location of this {@link DesktopFrame}
++     * 
++     * Native frames would know their screen bounds, but 
++     * because this is a custom frame, we must intercept this
++     * call to make sure that the location is a valid one.
++     * 
++     * @param	p	the location of this frame as a {@link Point}
++     */
 +    @Override
 +    public void setLocation(Point p) {
 +    	super.setLocation(getValidLocationFor(p));
@@ -311,16 +430,22 @@ index 0000000..01d3006
 +    
 +    /**
 +     * Sets the {@link TitleBar} component.
++     * 
++     * The {@code TitleBar}'s preferred height must be set prior
++     * to calling this method (preferredWidth is irrelevant, i.e.
++     * can be set to zero).
++     * 
 +     * @param c		the TitleBar component.
 +     */
 +    public void setTitleBar(TitleBar c) {
 +        if(titlebarContainer == null) {
 +            titlebarContainer = new JPanel(new BorderLayout());
++            //titlebarContainer.setOpaque(false);
 +            super.add(titlebarContainer, BorderLayout.NORTH);
 +        }
 +        removeTitleBar();
 +        this.titleBar = c;
-+        titleBarHeight = c.getHeight();
++        titleBarHeight = c.getPreferredSize().height;
 +        titlebarContainer.add(c, BorderLayout.NORTH);
 +        addCursorHandler();
 +        installMouseHandler(new MouseHandler());
@@ -334,16 +459,25 @@ index 0000000..01d3006
 +     * @return	the removed TitleBar component.
 +     */
 +    public JComponent removeTitleBar() {
-+        if(titlebarContainer == null) {
-+            titlebarContainer = new JPanel(new BorderLayout());
-+        }
-+        if(titleBar != null) {
++        if(titlebarContainer != null && titleBar != null) {
 +            titlebarContainer.remove(titleBar);
 +        }
 +        JComponent c = titleBar;
++        if(c != null) {
++        	c.removeAll();
++        }
 +        this.titleBar = null;
 +        setTitleBarHeight(0);
 +        return c;
++    }
++    
++    /**
++     * Returns the current component serving as the {@link TitleBar}
++     * 
++     * @return	the current component serving as the {@link TitleBar}
++     */
++    public TitleBar getTitleBar() {
++    	return this.titleBar;
 +    }
 +    
 +    /**
@@ -354,8 +488,8 @@ index 0000000..01d3006
 +    public java.awt.Insets getTitlebarInsets() {
 +    	java.awt.Insets superInsets = super.getInsets();
 +    	return new java.awt.Insets(
-+    		titleBar.getPreferredSize().height, superInsets.left, 
-+    			superInsets.bottom, superInsets.right);
++    		titleBar.getPreferredSize().height, superInsets.left + leftBorderComponent.getWidth(), 
++    			superInsets.bottom + bottomBorderComponent.getHeight(), superInsets.right + rightBorderComponent.getWidth());
 +    }
 +    
 +    @Override
@@ -586,12 +720,6 @@ index 0000000..01d3006
 +        return getBounds();
 +    }
 +    
-+    @Override
-+    public void paint(Graphics g) {
-+    	super.paint(g);
-+    	
-+    }
-+    
 +    /**
 +     * Initializes the border component sizes.
 +     */
@@ -617,15 +745,33 @@ index 0000000..01d3006
 +     * 
 +     * @return  the default title bar
 +     */
-+    private TitleBar createTitleBar() {
-+    	TitleBar titleBar = new DefaultTitleBar();
-+        titleBar.setPreferredSize(new Dimension(0, titleBarHeight));
-+        titleBar.setAlignmentX(Component.LEFT_ALIGNMENT);
-+        
-+        TitleBarControl control = createDefaultTitleBarControl();
-+        control.setPreferredSize(new Dimension(60,20));
-+        titleBar.addTitleBarControl(control);
-+        
++    private TitleBar createTitleBar(Style style) {
++    	TitleBar titleBar = null;
++    	switch(style) {
++	    	case NATIVE_LINUX:
++	    	case NATIVE_WIN: {
++	    		titleBar = new WindowsTitleBar();
++	    		titleBar.setPreferredSize(new Dimension(0, titleBarHeight));
++	            break;
++	    	}
++	    	case NATIVE_OSX: {
++	    		titleBar = new OSXTitleBar();
++	    		titleBar.setPreferredSize(new Dimension(0, titleBarHeight));
++	            break;
++	    	}
++	    	default: {
++	    		titleBar = new DefaultTitleBar();
++	    		titleBar.setPreferredSize(new Dimension(0, titleBarHeight));
++	            
++	            TitleBarControl control = createDefaultTitleBarControl();
++	            control.setPreferredSize(new Dimension(60,20));
++	            titleBar.addTitleBarControl(control);
++	            break;
++	    	}
++    	}
++    	
++    	mainContentPanel.revalidate();
++    	
 +        return titleBar; 
 +    }
 +    
@@ -650,7 +796,9 @@ index 0000000..01d3006
 +     */
 +    private void addMainContentPanel(JPanel panel) {
 +        this.mainContentPanel = panel;
-+        this.mainContentPanel.setOpaque(true);
++//        this.mainContentPanel.setBackground(new Color(0,0,0,0));
++//        super.setBackground(new Color(0,0,0,0));
++//        super.getContentPane().setBackground(new Color(0,0,0,0));
 +        super.add(mainContentPanel, BorderLayout.CENTER);
 +    }
 +    
@@ -660,27 +808,20 @@ index 0000000..01d3006
 +     * @return  the panel which holds the main content.
 +     */
 +    private JPanel createMainContentPanel() {
-+        return new JPanel(new BorderLayout()) {
-+        	@Override
-+        	public void paintChildren(Graphics g) {
-+        		if(isResizing) {
-+    	    		Rectangle r = g.getClipBounds();
-+        	    	storedImage = new BufferedImage(r.width, r.height, BufferedImage.TYPE_INT_ARGB);
-+        	    	Graphics2D g2 = (Graphics2D)storedImage.getGraphics();
-+        	    	super.paintChildren(g2);
-+        	    	g2.dispose();
-+    	    	}
-+        		super.paintChildren(g);
-+        	}
++        JPanel main = new JPanel(new BorderLayout()) {
 +        	@Override
 +        	public void paintComponent(Graphics g) {
-+        		if(isDragging) {
-+            		g.drawImage(storedImage,0,0,null);
-+            	}else {
-+        	    	super.paintComponent(g);
-+            	}
++//        		Rectangle r = g.getClipBounds();
++//        		r.x += 2;
++//        		r.y += 2;
++//        		r.width -= 4;
++//        		r.height -= 4;
++//        		g.setClip(r);
++        		super.paintComponent(g);
 +        	}
 +        };
++        //main.setOpaque(false);
++        return main;
 +    }
 +    
 +    /**
@@ -1097,10 +1238,10 @@ index 0000000..01d3006
 +}
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/OSXTitleBar.java b/pivot-wtk/src/org/apache/pivot/wtk/OSXTitleBar.java
 new file mode 100644
-index 0000000..42af10a
+index 0000000..1bce581
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/OSXTitleBar.java
-@@ -0,0 +1,416 @@
+@@ -0,0 +1,393 @@
 +package org.apache.pivot.wtk;
 +
 +import java.awt.AWTEvent;
@@ -1123,8 +1264,6 @@ index 0000000..42af10a
 +import java.awt.geom.AffineTransform;
 +import java.awt.geom.Point2D;
 +import java.awt.geom.Rectangle2D;
-+import java.util.ArrayList;
-+import java.util.List;
 +
 +import javax.swing.JFrame;
 +import javax.swing.SwingUtilities;
@@ -1132,20 +1271,10 @@ index 0000000..42af10a
 +
 +@SuppressWarnings("serial")
 +public class OSXTitleBar extends TitleBar {
-+	List<IconizeListener> iconizeListeners = new ArrayList<IconizeListener>();
++	
 +	
 +	public OSXTitleBar() {
 +		addTitleBarControl(createTitleBarControl());
-+	}
-+	
-+	public void addIconizeListener(IconizeListener l) {
-+		if(l != null) {
-+			iconizeListeners.add(l);
-+		}
-+	}
-+	
-+	public void removeIconizeListener(IconizeListener l) {
-+		iconizeListeners.remove(l);
 +	}
 +	
 +	@Override
@@ -1210,8 +1339,6 @@ index 0000000..42af10a
 +    	private boolean shapesInitialized;
 +    	
 +    	public OSXTitleBarControl() {
-+    		createControlShapes();
-+    		
 +    		getParentFrame();
 +    	}
 +    	
@@ -1222,6 +1349,7 @@ index 0000000..42af10a
 +    		
 +    		if(!shapesInitialized) {
 +    			createControlShapes();
++    			installListeners();
 +    			shapesInitialized = true;
 +    		}
 +    		
@@ -1407,6 +1535,7 @@ index 0000000..42af10a
 +    		addMouseListener(new MouseAdapter() {
 +    			public void mouseReleased(MouseEvent e) {
 +    				if(localMinimizeRect.contains(e.getPoint())) {
++    					fireFrameWillBecomeIconized();
 +    					hostFrame.setExtendedState(JFrame.ICONIFIED);
 +    				}else if(localMaximizeRect.contains(e.getPoint())) {
 +    					if((hostFrame.getExtendedState() & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH) {
@@ -1440,8 +1569,10 @@ index 0000000..42af10a
 +    		});
 +    		OSXTitleBarControl.this.addMouseMotionListener(new MouseAdapter() {
 +    			public void mouseMoved(MouseEvent m) {
++    				System.out.println("mouse moved " + m.getPoint());
 +    				java.awt.Point p = m.getPoint();
 +    				if(localCloseRect.contains(p) || localMinimizeRect.contains(p) || localMaximizeRect.contains(p)) {
++    					System.out.println("contains");
 +    					mouseOverControl = true;
 +    				}else{
 +    					mouseOverControl = false;
@@ -1499,30 +1630,17 @@ index 0000000..42af10a
 +	    					}
 +	    				});
 +    				}
-+    				
-+    				installListeners();
 +    			}
 +    		}).start();
 +    	}
 +	}
-+	
-+	/**
-+	 * Listened to by those classes wishing to be informed
-+	 * when this {@link TitleBar}'s frame will be iconized.
-+	 * 
-+	 * @author David Ray
-+	 */
-+	public interface IconizeListener {
-+		public void frameWillIconize();
-+	}
-+
 +}
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/TitleBar.java b/pivot-wtk/src/org/apache/pivot/wtk/TitleBar.java
 new file mode 100644
-index 0000000..e9f204d
+index 0000000..b663f45
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/TitleBar.java
-@@ -0,0 +1,93 @@
+@@ -0,0 +1,124 @@
 +package org.apache.pivot.wtk;
 +
 +import java.awt.BorderLayout;
@@ -1530,12 +1648,16 @@ index 0000000..e9f204d
 +import java.awt.Graphics2D;
 +import java.awt.RenderingHints;
 +import java.awt.event.MouseEvent;
++import java.util.ArrayList;
++import java.util.List;
 +
 +import javax.swing.JPanel;
 +
 +@SuppressWarnings("serial")
 +public abstract class TitleBar extends JPanel implements java.awt.event.MouseListener {
 +	public enum Location { LEFT, CENTER, RIGHT };
++	
++	List<IconizeListener> iconizeListeners = new ArrayList<IconizeListener>();
 +	
 +	protected TitleBarControl control;
 +	protected String title;
@@ -1546,7 +1668,24 @@ index 0000000..e9f204d
 +	
 +	public TitleBar(String title) {
 +		this.title = title;
++		setOpaque(false);
 +		setLayout(new BorderLayout());
++	}
++	
++	public void addIconizeListener(IconizeListener l) {
++		if(l != null) {
++			iconizeListeners.add(l);
++		}
++	}
++	
++	public void removeIconizeListener(IconizeListener l) {
++		iconizeListeners.remove(l);
++	}
++	
++	public void fireFrameWillBecomeIconized() {
++		for(IconizeListener l : iconizeListeners) {
++			l.frameWillIconize();
++		}
 +	}
 +	
 +	public boolean isControlHit(MouseEvent m) {
@@ -1614,6 +1753,16 @@ index 0000000..e9f204d
 +	protected abstract void paintTitle(Graphics2D g2);
 +	
 +	protected abstract void fillTitleBar(Graphics2D g2);
++	
++	/**
++	 * Listened to by those classes wishing to be informed
++	 * when this {@link TitleBar}'s frame will be iconized.
++	 * 
++	 * @author David Ray
++	 */
++	public interface IconizeListener {
++		public void frameWillIconize();
++	}
 +
 +}
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/TitleBarControl.java b/pivot-wtk/src/org/apache/pivot/wtk/TitleBarControl.java
@@ -1684,4 +1833,59 @@ index 0000000..a69d9da
 +	public boolean isControlHit(MouseEvent e) {
 +		return this.getBounds().contains(e.getPoint());
 +	}
++}
+diff --git a/pivot-wtk/src/org/apache/pivot/wtk/WindowsTitleBar.java b/pivot-wtk/src/org/apache/pivot/wtk/WindowsTitleBar.java
+new file mode 100644
+index 0000000..0fda435
+--- /dev/null
++++ b/pivot-wtk/src/org/apache/pivot/wtk/WindowsTitleBar.java
+@@ -0,0 +1,49 @@
++package org.apache.pivot.wtk;
++
++import java.awt.Color;
++import java.awt.Graphics2D;
++import java.awt.Rectangle;
++
++@SuppressWarnings("serial")
++public class WindowsTitleBar extends TitleBar {
++	private boolean isJava7;
++	
++	public WindowsTitleBar() {
++		String version = System.getProperty("java.version");
++    	if(Integer.parseInt(version.split("\\.")[1]) >= 7) {
++    		this.isJava7 = true;
++    	}
++	}
++	
++	@Override
++	protected void paintTitle(Graphics2D g2) {
++		// TODO Auto-generated method stub
++
++	}
++
++	@Override
++	protected void fillTitleBar(Graphics2D g2) {
++		if(isJava7) {
++			fillTitleBarFor7(g2);
++		}else {
++			Color ltBlue = new Color(111, 149, 191, 50);
++			g2.setColor(ltBlue);
++			Rectangle r = g2.getClipBounds();
++			g2.fillRoundRect(0,0,r.width, r.height + 15, 15, 15);
++			//g2.fillRect(r.x,  r.y + r.height - 5, r.width, r.height);
++			System.out.println("win titlebar bounds = " + g2.getClipBounds());
++		}
++	}
++	
++	private void fillTitleBarFor7(Graphics2D g2) {
++		Color ltBlue = new Color(111, 149, 191, 90);
++		g2.setColor(ltBlue);
++		Rectangle r = g2.getClipBounds();
++		g2.fillRoundRect(0,0,r.width, r.height + 15, 15, 15);
++		g2.setColor(Color.BLACK);
++		g2.drawRoundRect(0,0,r.width - 1, r.height + 15, 15, 15);
++		//g2.fillRect(r.x,  r.y + r.height - 5, r.width, r.height);
++		System.out.println("win titlebar bounds = " + g2.getClipBounds());
++	}
++
 +}
