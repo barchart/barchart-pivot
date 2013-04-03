@@ -80,10 +80,10 @@ index eb23b16..948d829 100644
          String osName = System.getProperty("os.name");
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java b/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java
 new file mode 100644
-index 0000000..c5994d8
+index 0000000..29fb03e
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java
-@@ -0,0 +1,1152 @@
+@@ -0,0 +1,1253 @@
 +package org.apache.pivot.wtk;
 +
 +import java.awt.BasicStroke;
@@ -109,7 +109,6 @@ index 0000000..c5994d8
 +import java.awt.event.MouseMotionListener;
 +import java.awt.geom.Area;
 +import java.awt.geom.Rectangle2D;
-+import java.awt.image.BufferedImage;
 +import java.lang.reflect.Method;
 +import java.util.ArrayList;
 +import java.util.List;
@@ -136,6 +135,7 @@ index 0000000..c5994d8
 +		NATIVE_OSX, NATIVE_WIN, NATIVE_LINUX, CUSTOM, DEFAULT;
 +		
 +		public void apply(DesktopFrame frame) {
++			frame.configuredStyle = this;
 +			frame.removeTitleBar();
 +			
 +			switch(this) {
@@ -143,11 +143,16 @@ index 0000000..c5994d8
 +		        case NATIVE_WIN: {
 +		        	frame.titleBarHeight = WIN_TITLEBAR_HEIGHT;
 +		        	frame.setTitleBar(frame.createTitleBar(this));
-+		        	frame.setBorderSize(5);
-+		        	Color ltBlue = new Color(111, 149, 191, 140);
-+		        	frame.setBorderColor(ltBlue);
-+		            frame.setBorderDecorated(true, true);
-+		        	break;
++		        	
++		        	Color ltGray = Color.GRAY;
++		    		frame.setBorderColor(new Color(ltGray.getRed(), ltGray.getGreen(), ltGray.getBlue(), 100));
++		            frame.setBorderDecorated(true, false);
++		            frame.setBorderSize(5);
++		            
++		            frame.installWindowsBorders();
++		            
++		        	frame.reshapeBorders();
++		            break;
 +		        }
 +		        case NATIVE_OSX: {
 +		        	frame.titleBarHeight = OSX_TITLEBAR_HEIGHT;
@@ -165,12 +170,13 @@ index 0000000..c5994d8
 +		            break;
 +		        }
 +	        }
++			frame.addCursorHandler();
++	        frame.installMouseHandler(frame.new MouseHandler());
 +		}
 +	};
 +	
 +	private static final int OSX_TITLEBAR_HEIGHT = 22;
 +	private static final int WIN_TITLEBAR_HEIGHT = 25;
-+	private static final int LINUX_TITLEBAR_HEIGHT = 25;
 +	private static final int DEFAULT_TITLEBAR_HEIGHT = 25;
 +	private static boolean NATIVE_STYLE_OVERRIDE;
 +	
@@ -186,30 +192,32 @@ index 0000000..c5994d8
 +    private JComponent rightBorderComponent;
 +    /** The bottom border component which detects mouse events for cursor manipulation and resizing */
 +    private JComponent bottomBorderComponent;
-+    
++    /** Contains the user's view to be installed in this frame */
 +    private Component userPanel; 
-+    
++    /** Handles cursor changes to indicated resizing */
 +    private CursorManager cursorManager;
-+    
++    /** Flag indicating this frame contains borders. */
 +    private boolean isBorderDecorated;
 +    /** Container of both the title bar and optional JMenuBar */
 +    private JPanel titlebarContainer;
 +    /** The optional JMenuBar */
 +    private JMenuBar menuBar;
-+    
++    /** The size in pixels of the border */
 +    private int borderSize = 1;
++    /** The thickness over which a cursor change will be triggered for resizing */
 +    private int resizeMargin = borderSize;
-+    
++    /** The border color */
 +    private Color borderColor = new Color(120, 120, 120);
-+    
++    /** List of screen rectangles - one per monitor */
 +    private List<Rectangle> virtualDeviceBounds;
++    /** The shape of the virtual screens */
 +    private Area virtualArea;
-+    
-+    private BufferedImage storedImage;
-+    private boolean isDragging;
++    /** Flag indicating a resize operation ocurring */
 +    private boolean isResizing;
++    /** Enum which handles the native os look and feel configuration */
++    private Style configuredStyle;
 +    
-+    
++    /** List of listeners with interest in drag notifications */
 +    private List<DragListener> dragListeners = new ArrayList<DragListener>();
 +    
 +    
@@ -224,7 +232,14 @@ index 0000000..c5994d8
 +        this(NATIVE_STYLE_OVERRIDE ? Style.CUSTOM : getNativeStyle());
 +    }
 +    
++    /**
++     * Constructs a new {@code DesktopFrame} with the indicated
++     * native os styling.
++     * 
++     * @param style		{@link Style}
++     */
 +    public DesktopFrame(Style style) {
++    	this.configuredStyle = style;
 +    	getRootPane().putClientProperty("Window.alpha", new Float(1));
 +    	setUndecorated(true);
 +        super.setLayout(new BorderLayout());
@@ -235,11 +250,12 @@ index 0000000..c5994d8
 +        style.apply(this);
 +        
 +        reshapeBorders();
++        //Collect the current monitor configuration boundaries.
 +        getEnvironmentInfo();  
 +        
 +        //Use Reflection to check if translucent windows are available,
 +        //and if so, enable translucent windows for Windows 7 like frames.
-+        //execSetOpacityMethod();
++        execSetOpacityMethod();
 +    }
 +    
 +    /**
@@ -440,15 +456,13 @@ index 0000000..c5994d8
 +    public void setTitleBar(TitleBar c) {
 +        if(titlebarContainer == null) {
 +            titlebarContainer = new JPanel(new BorderLayout());
-+            //titlebarContainer.setOpaque(false);
++            titlebarContainer.setOpaque(false);
 +            super.add(titlebarContainer, BorderLayout.NORTH);
 +        }
 +        removeTitleBar();
 +        this.titleBar = c;
 +        titleBarHeight = c.getPreferredSize().height;
 +        titlebarContainer.add(c, BorderLayout.NORTH);
-+        addCursorHandler();
-+        installMouseHandler(new MouseHandler());
 +        invalidate();
 +        validate();
 +        repaint();
@@ -796,9 +810,9 @@ index 0000000..c5994d8
 +     */
 +    private void addMainContentPanel(JPanel panel) {
 +        this.mainContentPanel = panel;
-+//        this.mainContentPanel.setBackground(new Color(0,0,0,0));
-+//        super.setBackground(new Color(0,0,0,0));
-+//        super.getContentPane().setBackground(new Color(0,0,0,0));
++        this.mainContentPanel.setBackground(new Color(0,0,0,0));
++        super.setBackground(new Color(0,0,0,0));
++        super.getContentPane().setBackground(new Color(0,0,0,0));
 +        super.add(mainContentPanel, BorderLayout.CENTER);
 +    }
 +    
@@ -811,16 +825,18 @@ index 0000000..c5994d8
 +        JPanel main = new JPanel(new BorderLayout()) {
 +        	@Override
 +        	public void paintComponent(Graphics g) {
-+//        		Rectangle r = g.getClipBounds();
-+//        		r.x += 2;
-+//        		r.y += 2;
-+//        		r.width -= 4;
-+//        		r.height -= 4;
-+//        		g.setClip(r);
-+        		super.paintComponent(g);
++        		if(configuredStyle == Style.NATIVE_WIN) {
++        			super.paintComponent(g);
++        			Rectangle r = g.getClipBounds();
++        			
++            		g.setColor(Color.BLACK);
++            		g.drawLine(0,0,0,r.height);
++            		g.drawLine(0, r.height - 1, r.width, r.height - 1);
++            		g.drawLine(r.width - 1, 0, r.width - 1, r.height - 1);
++            	}
 +        	}
 +        };
-+        //main.setOpaque(false);
++        main.setOpaque(false);
 +        return main;
 +    }
 +    
@@ -839,6 +855,71 @@ index 0000000..c5994d8
 +        JComponent bBorder = new JPanel();
 +        bBorder.setBackground(getBorderColor());
 +        setBottomBorderComponent(bBorder);
++    }
++    
++    /**
++     * Called from {@link Style#apply(DesktopFrame)} to
++     * install native Windows os look and feel to this
++     * frame.
++     */
++    private void installWindowsBorders() {
++    	removeBorders();
++    	
++    	JComponent lBorder = new JPanel() {
++    		@Override
++    		public void paintComponent(Graphics g) {
++    			super.paintComponent(g);
++    			Rectangle r = g.getClipBounds();
++    			g.setColor(Color.WHITE);
++        		g.drawLine(1,0,1,r.height);
++    		}
++    	};
++        lBorder.setBackground(getBorderColor());
++    	setLeftBorderComponent(lBorder);
++        
++        JComponent rBorder = new JPanel() {
++        	public void paintComponent(Graphics g) {
++        		super.paintComponent(g);
++        		Rectangle r = g.getClipBounds();
++        		g.setColor(Color.WHITE);
++        		g.drawLine(r.width - 2,0,r.width - 2,r.height - 1);
++        	}
++        };
++        rBorder.setBackground(getBorderColor());
++        setRightBorderComponent(rBorder);
++        
++        JComponent bBorder = new JPanel() {
++        	public void paintComponent(Graphics g) {
++        		super.paintComponent(g);
++        		Rectangle r = g.getClipBounds();
++        		g.setColor(Color.WHITE);
++        		g.drawLine(1,r.height - 2,r.width - 2,r.height - 2);
++        		g.drawLine(1, 0, 1, r.height - 2);
++        		g.drawLine(r.width - 2, 0, r.width - 2, r.height - 2);
++        	}
++        };
++        bBorder.setBackground(getBorderColor());
++        setBottomBorderComponent(bBorder);
++    	
++    }
++    
++    /**
++     * Removes the border components.
++     */
++    private void removeBorders() {
++    	removeBorderCursorHandlers();
++    	if(leftBorderComponent != null) {
++    		mainContentPanel.remove(leftBorderComponent);
++    		leftBorderComponent = null;
++    	}
++    	if(rightBorderComponent != null) {
++    		mainContentPanel.remove(rightBorderComponent);
++    		rightBorderComponent = null;
++    	}
++    	if(bottomBorderComponent != null) {
++    		mainContentPanel.remove(bottomBorderComponent);
++    		bottomBorderComponent = null;
++    	}
 +    }
 +    
 +    /**
@@ -862,6 +943,24 @@ index 0000000..c5994d8
 +        if(bottomBorderComponent != null) {
 +            bottomBorderComponent.addMouseListener(cursorManager);
 +            bottomBorderComponent.addMouseMotionListener(cursorManager);
++        }
++    }
++    
++    /**
++     * Uninstalls the handler which manages cursors over the borders.
++     */
++    private void removeBorderCursorHandlers() {
++    	if(leftBorderComponent != null) {
++            leftBorderComponent.removeMouseListener(cursorManager);
++            leftBorderComponent.removeMouseMotionListener(cursorManager);
++        }
++        if(rightBorderComponent != null) {
++            rightBorderComponent.removeMouseListener(cursorManager);
++            rightBorderComponent.removeMouseMotionListener(cursorManager);
++        }
++        if(bottomBorderComponent != null) {
++            bottomBorderComponent.removeMouseListener(cursorManager);
++            bottomBorderComponent.removeMouseMotionListener(cursorManager);
 +        }
 +    }
 +    
@@ -994,6 +1093,10 @@ index 0000000..c5994d8
 +        return true;
 +    }
 +    
++    /**
++     * Creates the default title bar buttons.
++     * @return	the default title bar buttons.
++     */
 +    private TitleBarControl createDefaultTitleBarControl() {
 +    	return new DefaultTitleBarControl();
 +    }
@@ -1064,7 +1167,6 @@ index 0000000..c5994d8
 +    	}
 +    	
 +    	public void mouseDragged(MouseEvent m) {
-+    		isDragging = true;
 +    		Point p = MouseInfo.getPointerInfo().getLocation();
 +    		
 +    		int xAmount = (p.x - startPoint.x);
@@ -1082,7 +1184,6 @@ index 0000000..c5994d8
 +    	}
 +    	
 +    	public void mouseReleased(MouseEvent m) {
-+    		isDragging = false;
 +    		if(titleBar.isControlHit(m)) {
 +    			titleBar.mouseReleased(m);
 +    		}
@@ -1836,10 +1937,10 @@ index 0000000..a69d9da
 +}
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/WindowsTitleBar.java b/pivot-wtk/src/org/apache/pivot/wtk/WindowsTitleBar.java
 new file mode 100644
-index 0000000..0fda435
+index 0000000..6e3408e
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/WindowsTitleBar.java
-@@ -0,0 +1,49 @@
+@@ -0,0 +1,53 @@
 +package org.apache.pivot.wtk;
 +
 +import java.awt.Color;
@@ -1878,14 +1979,18 @@ index 0000000..0fda435
 +	}
 +	
 +	private void fillTitleBarFor7(Graphics2D g2) {
-+		Color ltBlue = new Color(111, 149, 191, 90);
-+		g2.setColor(ltBlue);
++		Color ltGray = Color.GRAY;
++		g2.setColor(new Color(ltGray.getRed(), ltGray.getGreen(), ltGray.getBlue(), 100));
 +		Rectangle r = g2.getClipBounds();
 +		g2.fillRoundRect(0,0,r.width, r.height + 15, 15, 15);
 +		g2.setColor(Color.BLACK);
 +		g2.drawRoundRect(0,0,r.width - 1, r.height + 15, 15, 15);
-+		//g2.fillRect(r.x,  r.y + r.height - 5, r.width, r.height);
-+		System.out.println("win titlebar bounds = " + g2.getClipBounds());
++		g2.setColor(Color.WHITE);
++		g2.drawRoundRect(1,1,r.width - 3, r.height + 15, 15, 15);
++		g2.setColor(Color.BLACK);
++		g2.drawRoundRect(r.width - 85, -10, 80, 25, 10, 10);
++		g2.setColor(Color.WHITE);
++		g2.drawRoundRect(r.width - 86, -9, 82, 25, 10, 10);
 +	}
 +
 +}
