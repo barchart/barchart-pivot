@@ -1,5 +1,5 @@
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/DesktopApplicationContext.java b/pivot-wtk/src/org/apache/pivot/wtk/DesktopApplicationContext.java
-index eb23b16..b5126ab 100644
+index eb23b16..79cdcc9 100644
 --- a/pivot-wtk/src/org/apache/pivot/wtk/DesktopApplicationContext.java
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/DesktopApplicationContext.java
 @@ -192,6 +192,22 @@ public final class DesktopApplicationContext extends ApplicationContext {
@@ -32,7 +32,7 @@ index eb23b16..b5126ab 100644
 -    private static class HostFrame extends java.awt.Frame implements TitledWindow {
 +    // David Ray : Forked change of access level (from private to protected) to this class and its extention
 +    //			  to javax.swing.JFrame from java.awt.Frame
-+    public static class HostFrame extends javax.swing.JFrame implements TitledWindow {
++    public static class HostFrame extends java.awt.Frame implements TitledWindow {
          private static final long serialVersionUID = 5340356674429280196L;
  
          public HostFrame() {
@@ -90,7 +90,7 @@ index eb23b16..b5126ab 100644
          String osName = System.getProperty("os.name");
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java b/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java
 new file mode 100644
-index 0000000..cf89bc7
+index 0000000..72bddef
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java
 @@ -0,0 +1,1254 @@
@@ -252,7 +252,7 @@ index 0000000..cf89bc7
 +     */
 +    public DesktopFrame(Style style) {
 +    	this.configuredStyle = style;
-+    	getRootPane().putClientProperty("Window.alpha", new Float(1));
++    	//getRootPane().putClientProperty("Window.alpha", new Float(1));
 +    	setUndecorated(true);
 +        super.setLayout(new BorderLayout());
 +        
@@ -518,18 +518,18 @@ index 0000000..cf89bc7
 +    			superInsets.bottom + bottomBorderComponent.getHeight(), superInsets.right + rightBorderComponent.getWidth());
 +    }
 +    
-+    @Override
-+    public void setJMenuBar(JMenuBar menuBar) {
-+        this.menuBar = menuBar;
-+        if(menuBar != null) {
-+            titlebarContainer.add(menuBar, BorderLayout.SOUTH);
-+        }
-+    }
-+    
-+    @Override
-+    public JMenuBar getJMenuBar() {
-+        return menuBar;
-+    }
++//    @Override
++//    public void setJMenuBar(JMenuBar menuBar) {
++//        this.menuBar = menuBar;
++//        if(menuBar != null) {
++//            titlebarContainer.add(menuBar, BorderLayout.SOUTH);
++//        }
++//    }
++//    
++//    @Override
++//    public JMenuBar getJMenuBar() {
++//        return menuBar;
++//    }
 +    
 +    /**
 +     * Sets the color that will be used to paint the border.
@@ -589,13 +589,13 @@ index 0000000..cf89bc7
 +     * Returns the {@link Container} the user added to this
 +     * frame.
 +     */
-+    @Override
-+    public Container getContentPane() {
-+        if(userPanel == null) {
-+            return super.getContentPane();
-+        }
-+        return (Container)userPanel;
-+    }
++//    @Override
++//    public Container getContentPane() {
++//        if(userPanel == null) {
++//            return super.getContentPane();
++//        }
++//        return (Container)userPanel;
++//    }
 +    
 +    /**
 +     * Adds the component which is the parent of all other components
@@ -823,7 +823,7 @@ index 0000000..cf89bc7
 +    private void addMainContentPanel(JPanel panel) {
 +        this.mainContentPanel = panel;
 +        super.setBackground(new Color(0,0,0,0));
-+        super.getContentPane().setBackground(new Color(0,0,0,0));
++        //super.getContentPane().setBackground(new Color(0,0,0,0));
 +        super.add(mainContentPanel, BorderLayout.CENTER);
 +    }
 +    
