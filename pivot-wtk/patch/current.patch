@@ -1,8 +1,8 @@
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/DesktopApplicationContext.java b/pivot-wtk/src/org/apache/pivot/wtk/DesktopApplicationContext.java
-index eb23b16..d743732 100644
+index eb23b16..b5126ab 100644
 --- a/pivot-wtk/src/org/apache/pivot/wtk/DesktopApplicationContext.java
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/DesktopApplicationContext.java
-@@ -192,6 +192,23 @@ public final class DesktopApplicationContext extends ApplicationContext {
+@@ -192,6 +192,22 @@ public final class DesktopApplicationContext extends ApplicationContext {
              }
          }
      }
@@ -16,8 +16,7 @@ index eb23b16..d743732 100644
 +     * @return	an instance of EventEnabledFrame
 +     */
 +    protected static HostFrame getHostFrame() {
-+    	String customFrameProp = System.getProperty("requireCustomFrame");
-+    	if(isRunningVersion7OrGreater() && customFrameProp != null && customFrameProp.equalsIgnoreCase("true")) {
++    	if(isRunningVersion7OrGreater() && isUsingCustomFrame()) {
 +    		System.out.println("Running extended capability pivot fork.");
 +    		return new DesktopFrame();
 +    	}
@@ -26,7 +25,7 @@ index eb23b16..d743732 100644
  
      // The AWT Window class does not define a title property; this interface allows
      // the HostFrame and HostDialog titles to be handled polymorphically
-@@ -201,11 +218,13 @@ public final class DesktopApplicationContext extends ApplicationContext {
+@@ -201,11 +217,13 @@ public final class DesktopApplicationContext extends ApplicationContext {
      }
  
      // Native host frame
@@ -42,16 +41,16 @@ index eb23b16..d743732 100644
                  | AWTEvent.WINDOW_STATE_EVENT_MASK);
  
              // Disable focus traversal keys
-@@ -479,7 +498,7 @@ public final class DesktopApplicationContext extends ApplicationContext {
+@@ -479,7 +497,7 @@ public final class DesktopApplicationContext extends ApplicationContext {
          boolean center = false;
          boolean resizable = true;
          boolean maximized = false;
 -        boolean undecorated = false;
-+        boolean undecorated = isRunningVersion7OrGreater();
++        boolean undecorated = isRunningVersion7OrGreater() && isUsingCustomFrame();
          boolean fullScreen = false;
          boolean preserveSplashScreen = false;
  
-@@ -564,7 +583,7 @@ public final class DesktopApplicationContext extends ApplicationContext {
+@@ -564,7 +582,7 @@ public final class DesktopApplicationContext extends ApplicationContext {
          displays.add(primaryDisplayHost.getDisplay());
  
          // Create the windowed host frame
@@ -60,7 +59,7 @@ index eb23b16..d743732 100644
          windowedHostFrame.add(primaryDisplayHost);
          windowedHostFrame.setUndecorated(undecorated);
  
-@@ -647,6 +666,18 @@ public final class DesktopApplicationContext extends ApplicationContext {
+@@ -647,6 +665,28 @@ public final class DesktopApplicationContext extends ApplicationContext {
              });
          }
      }
@@ -75,6 +74,16 @@ index eb23b16..d743732 100644
 +    private static boolean isRunningVersion7OrGreater() {
 +    	String version = System.getProperty("java.version");
 +    	return Integer.parseInt(version.split("\\.")[1]) >= 7;
++    }
++    
++    /**
++     * Returns a flag indicating whether the custom frame property was
++     * set to true on the command line
++     * @return	flag indicating the wish to use the custom frame
++     */
++    private static boolean isUsingCustomFrame() {
++    	String customProp = System.getProperty("requireCustomFrame");
++    	return customProp != null && customProp.trim().equalsIgnoreCase("true");
 +    }
  
      private static void initializeOSExtensions() {
