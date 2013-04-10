@@ -1,5 +1,5 @@
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/DesktopApplicationContext.java b/pivot-wtk/src/org/apache/pivot/wtk/DesktopApplicationContext.java
-index eb23b16..84af101 100644
+index eb23b16..b273665 100644
 --- a/pivot-wtk/src/org/apache/pivot/wtk/DesktopApplicationContext.java
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/DesktopApplicationContext.java
 @@ -192,6 +192,26 @@ public final class DesktopApplicationContext extends ApplicationContext {
@@ -18,7 +18,7 @@ index eb23b16..84af101 100644
 +    protected static HostFrame getHostFrame() {
 +    	if(isRunningVersion7OrGreater() && isUsingCustomFrame()) {
 +    		System.out.println("Running extended capability pivot fork.");
-+    		String style = System.getProperty("osStyle");
++    		String style = System.getProperty("windowStyle");
 +    		if(style != null) {
 +    			return new DesktopFrame(DesktopFrame.Style.styleFor(style));
 +    		}
