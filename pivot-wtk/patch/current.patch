@@ -1198,7 +1198,7 @@ index 0000000..c8edb8a
 +}
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/OSXTitleBar.java b/pivot-wtk/src/org/apache/pivot/wtk/OSXTitleBar.java
 new file mode 100644
-index 0000000..28f446a
+index 0000000..4dca755
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/OSXTitleBar.java
 @@ -0,0 +1,389 @@
@@ -1303,7 +1303,7 @@ index 0000000..28f446a
 +    	}
 +    	
 +    	@Override
-+    	public void paintComponent(Graphics graphics) {
++    	public void paint(Graphics graphics) {
 +    		Graphics2D g = (Graphics2D)graphics;
 +    		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 +    		
@@ -1931,7 +1931,7 @@ index 0000000..e2c86c3
 +}
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/TitleBar.java b/pivot-wtk/src/org/apache/pivot/wtk/TitleBar.java
 new file mode 100644
-index 0000000..78e8cd6
+index 0000000..c1fd236
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/TitleBar.java
 @@ -0,0 +1,135 @@
@@ -1956,7 +1956,7 @@ index 0000000..78e8cd6
 + * @author David Ray
 + */
 +@SuppressWarnings("serial")
-+public abstract class TitleBar extends JPanel implements java.awt.event.MouseListener {
++public abstract class TitleBar extends java.awt.Panel implements java.awt.event.MouseListener {
 +	public enum Location { LEFT, CENTER, RIGHT };
 +	
 +	List<IconizeListener> iconizeListeners = new ArrayList<IconizeListener>();
@@ -2037,8 +2037,8 @@ index 0000000..78e8cd6
 +	}
 +	
 +	@Override
-+	public void paintComponent(Graphics g) {
-+        super.paintComponent(g);
++	public void paint(Graphics g) {
++        super.paint(g);
 +        
 +        Graphics2D g2 = (Graphics2D)g;
 +        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -2072,7 +2072,7 @@ index 0000000..78e8cd6
 +}
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/TitleBarControl.java b/pivot-wtk/src/org/apache/pivot/wtk/TitleBarControl.java
 new file mode 100644
-index 0000000..fe758b2
+index 0000000..bae1038
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/TitleBarControl.java
 @@ -0,0 +1,63 @@
@@ -2093,7 +2093,7 @@ index 0000000..fe758b2
 + * @author David Ray
 + */
 +@SuppressWarnings("serial")
-+public abstract class TitleBarControl extends JComponent implements MouseListener, MouseMotionListener {
++public abstract class TitleBarControl extends java.awt.Component implements MouseListener, MouseMotionListener {
 +	private TitleBar.Location titleBarLoc = TitleBar.Location.RIGHT;
 +	
 +	@Override
@@ -2141,7 +2141,7 @@ index 0000000..fe758b2
 +}
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/WindowsTitleBar.java b/pivot-wtk/src/org/apache/pivot/wtk/WindowsTitleBar.java
 new file mode 100644
-index 0000000..8498340
+index 0000000..b5ec7e3
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/WindowsTitleBar.java
 @@ -0,0 +1,422 @@
@@ -2250,8 +2250,8 @@ index 0000000..8498340
 +    	}
 +    	
 +    	@Override
-+    	public void paintComponent(Graphics graphics) {
-+    		super.paintComponent(graphics);
++    	public void paint(Graphics graphics) {
++    		super.paint(graphics);
 +    		Graphics2D g = (Graphics2D)graphics;
 +    		if(!shapesInitialized) {
 +    			createTargetShapes();
