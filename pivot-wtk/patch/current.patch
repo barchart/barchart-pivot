@@ -90,7 +90,7 @@ index eb23b16..79cdcc9 100644
          String osName = System.getProperty("os.name");
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java b/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java
 new file mode 100644
-index 0000000..fcec423
+index 0000000..98ca14b
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java
 @@ -0,0 +1,1089 @@
@@ -149,7 +149,7 @@ index 0000000..fcec423
 +		        	frame.setTitleBar(frame.createTitleBar(this));
 +		        	
 +		        	Color ltGray = Color.GRAY;
-+		        	frame.setBorderColor(new Color(ltGray.getRed(), ltGray.getGreen(), ltGray.getBlue(), 50));
++		        	frame.setBorderColor(new Color(ltGray.getRed(), ltGray.getGreen(), ltGray.getBlue()));
 +		            frame.setBorderDecorated(true, false);
 +		            frame.setBorderSize(5);
 +		            
@@ -2129,10 +2129,10 @@ index 0000000..fe758b2
 +}
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/WindowsTitleBar.java b/pivot-wtk/src/org/apache/pivot/wtk/WindowsTitleBar.java
 new file mode 100644
-index 0000000..7f2d1ee
+index 0000000..8498340
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/WindowsTitleBar.java
-@@ -0,0 +1,421 @@
+@@ -0,0 +1,422 @@
 +package org.apache.pivot.wtk;
 +
 +import java.awt.AWTEvent;
@@ -2177,6 +2177,7 @@ index 0000000..7f2d1ee
 +	 */
 +	public WindowsTitleBar() {
 +		addTitleBarControl(createTitleBarControl());
++		System.out.println("running latest windows title bar");
 +	}
 +	
 +	@Override
@@ -2193,7 +2194,7 @@ index 0000000..7f2d1ee
 +	protected void fillTitleBar(Graphics2D g) {
 +		Rectangle r = g.getClipBounds();
 +		Color ltGray = Color.GRAY;
-+		g.setColor(new Color(ltGray.getRed(), ltGray.getGreen(), ltGray.getBlue(), 100));
++		g.setColor(ltGray);
 +		g.fillRoundRect(0,0,r.width, r.height + 15, 15, 15);
 +		g.setColor(Color.BLACK);
 +		g.drawRoundRect(0,0,r.width - 1, r.height + 15, 15, 15);
