@@ -94,10 +94,10 @@ index eb23b16..b273665 100644
          String osName = System.getProperty("os.name");
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java b/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java
 new file mode 100644
-index 0000000..975656a
+index 0000000..c8edb8a
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java
-@@ -0,0 +1,1103 @@
+@@ -0,0 +1,1098 @@
 +package org.apache.pivot.wtk;
 +
 +import java.awt.BasicStroke;
@@ -154,7 +154,7 @@ index 0000000..975656a
 +		        	
 +		        	Color ltGray = Color.GRAY;
 +		        	frame.setBorderColor(new Color(ltGray.getRed(), ltGray.getGreen(), ltGray.getBlue()));
-+		            frame.setBorderDecorated(true, false);
++		            frame.setBorderDecorated(true, true);
 +		            frame.setBorderSize(5);
 +		            
 +		            frame.installWindowsBorders();
@@ -262,11 +262,6 @@ index 0000000..975656a
 +	public Component add(Component comp) {
 +		mainContentPanel.add(comp, BorderLayout.CENTER);
 +		return comp;
-+	}
-+	
-+	@Override
-+	public void update(Graphics g) {
-+		paint(g);
 +	}
 +	
 +	/**
@@ -1936,10 +1931,10 @@ index 0000000..e2c86c3
 +}
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/TitleBar.java b/pivot-wtk/src/org/apache/pivot/wtk/TitleBar.java
 new file mode 100644
-index 0000000..0da3977
+index 0000000..78e8cd6
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/TitleBar.java
-@@ -0,0 +1,136 @@
+@@ -0,0 +1,135 @@
 +package org.apache.pivot.wtk;
 +
 +import java.awt.BorderLayout;
@@ -1975,7 +1970,6 @@ index 0000000..0da3977
 +	
 +	public TitleBar(String title) {
 +		this.title = title;
-+		setOpaque(false);
 +		setLayout(new BorderLayout());
 +	}
 +	
