@@ -1,5 +1,5 @@
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/DesktopApplicationContext.java b/pivot-wtk/src/org/apache/pivot/wtk/DesktopApplicationContext.java
-index eb23b16..b273665 100644
+index eb23b16..6b90237 100644
 --- a/pivot-wtk/src/org/apache/pivot/wtk/DesktopApplicationContext.java
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/DesktopApplicationContext.java
 @@ -192,6 +192,26 @@ public final class DesktopApplicationContext extends ApplicationContext {
@@ -17,7 +17,7 @@ index eb23b16..b273665 100644
 +     */
 +    protected static HostFrame getHostFrame() {
 +    	if(isRunningVersion7OrGreater() && isUsingCustomFrame()) {
-+    		System.out.println("Running extended capability pivot fork.");
++    		System.out.println("Running extended capability pivot fork.2");
 +    		String style = System.getProperty("windowStyle");
 +    		if(style != null) {
 +    			return new DesktopFrame(DesktopFrame.Style.styleFor(style));
@@ -94,10 +94,10 @@ index eb23b16..b273665 100644
          String osName = System.getProperty("os.name");
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java b/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java
 new file mode 100644
-index 0000000..c8edb8a
+index 0000000..0419d5b
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java
-@@ -0,0 +1,1098 @@
+@@ -0,0 +1,1137 @@
 +package org.apache.pivot.wtk;
 +
 +import java.awt.BasicStroke;
@@ -152,15 +152,15 @@ index 0000000..c8edb8a
 +		        	frame.titleBarHeight = WIN_TITLEBAR_HEIGHT;
 +		        	frame.setTitleBar(frame.createTitleBar(this));
 +		        	
-+		        	Color ltGray = Color.GRAY;
-+		        	frame.setBorderColor(new Color(ltGray.getRed(), ltGray.getGreen(), ltGray.getBlue()));
++		        	frame.setBorderColor(Color.GRAY);
 +		            frame.setBorderDecorated(true, true);
 +		            frame.setBorderSize(5);
 +		            
 +		            frame.installWindowsBorders();
 +		            
 +		        	frame.reshapeBorders();
-+		            break;
++		        	frame.mainContentPanel.invalidate();
++		        	break;
 +		        }
 +		        case NATIVE_OSX: {
 +		        	frame.titleBarHeight = OSX_TITLEBAR_HEIGHT;
@@ -184,6 +184,14 @@ index 0000000..c8edb8a
 +			if(frame.titleBar != null) {
 +				frame.addCursorHandler();
 +		        frame.installMouseHandler(frame.new MouseHandler());
++		        TitleBarControl tbc =  frame.titleBar.getTitleBarControl();
++		        if(tbc != null) {
++		        	frame.titleBar.invalidate();
++		        	tbc.invalidate();
++		        	tbc.repaint();
++		        }
++		       
++		        frame.repaint();
 +			}
 +		}
 +		
@@ -262,6 +270,11 @@ index 0000000..c8edb8a
 +	public Component add(Component comp) {
 +		mainContentPanel.add(comp, BorderLayout.CENTER);
 +		return comp;
++	}
++	
++	@Override
++	public void update(Graphics g) {
++		paint(g);
 +	}
 +	
 +	/**
@@ -460,6 +473,10 @@ index 0000000..c8edb8a
 +            		g.drawLine(r.width - 1, 0, r.width - 1, r.height - 1);
 +            	}
 +        	}
++        	@Override
++        	public void update(Graphics g) {
++        		paint(g);
++        	}
 +        };
 +        main.setPreferredSize(new Dimension(300, 200));
 +        main.setLayout(new BorderLayout());
@@ -614,8 +631,14 @@ index 0000000..c8edb8a
 +    		public void paint(Graphics g) {
 +    			super.paint(g);
 +    			Rectangle r = g.getClipBounds();
++    			g.setColor(getBorderColor());
++    			g.fillRect(r.x, r.y, r.width, r.height);
 +    			g.setColor(Color.WHITE);
 +        		g.drawLine(1,0,1,r.height);
++    		}
++    		@Override
++    		public void update(Graphics g) {
++    			paint(g);
 +    		}
 +    	};
 +        lBorder.setBackground(getBorderColor());
@@ -625,21 +648,34 @@ index 0000000..c8edb8a
 +        	public void paint(Graphics g) {
 +        		super.paint(g);
 +        		Rectangle r = g.getClipBounds();
++        		g.setColor(getBorderColor());
++    			g.fillRect(r.x, r.y, r.width, r.height);
 +        		g.setColor(Color.WHITE);
 +        		g.drawLine(r.width - 2,0,r.width - 2,r.height - 1);
++        	}
++        	@Override
++        	public void update(Graphics g) {
++        		paint(g);
 +        	}
 +        };
 +        rBorder.setBackground(getBorderColor());
 +        setRightBorderComponent(rBorder);
 +        
 +        Component bBorder = new Panel() {
++        	@Override
 +        	public void paint(Graphics g) {
 +        		super.paint(g);
 +        		Rectangle r = g.getClipBounds();
++        		g.setColor(getBorderColor());
++    			g.fillRect(r.x, r.y, r.width, r.height);
 +        		g.setColor(Color.WHITE);
 +        		g.drawLine(1,r.height - 2,r.width - 2,r.height - 2);
 +        		g.drawLine(1, 0, 1, r.height - 2);
 +        		g.drawLine(r.width - 2, 0, r.width - 2, r.height - 2);
++        	}
++        	@Override
++        	public void update(Graphics g) {
++        		paint(g);
 +        	}
 +        };
 +        bBorder.setBackground(getBorderColor());
@@ -787,9 +823,7 @@ index 0000000..c8edb8a
 +	    	}
 +    	}
 +    	
-+    	mainContentPanel.invalidate();
-+    	
-+        return titleBar; 
++    	return titleBar; 
 +    }
 +    
 +    /**
@@ -831,6 +865,7 @@ index 0000000..c8edb8a
 +        invalidate();
 +        validate();
 +        repaint();
++        titleBar.repaint();
 +    }
 +    
 +    /**
@@ -1020,7 +1055,7 @@ index 0000000..c8edb8a
 +    		startPoint = MouseInfo.getPointerInfo().getLocation();
 +    		startSide = Side.sideFor(getBounds(), startPoint, resizeMargin);
 +    		
-+    		if(titleBar.isControlHit(m)) {
++    		if(titleBar != null && titleBar.isControlHit(m)) {
 +    			titleBar.mousePressed(m);
 +    		}
 +    	}
@@ -1043,7 +1078,7 @@ index 0000000..c8edb8a
 +    	}
 +    	
 +    	public void mouseReleased(MouseEvent m) {
-+    		if(titleBar.isControlHit(m)) {
++    		if(titleBar != null && titleBar.isControlHit(m)) {
 +    			titleBar.mouseReleased(m);
 +    		}
 +    		
@@ -1156,6 +1191,10 @@ index 0000000..c8edb8a
 +    		g2.drawLine((int)closeRect.getX() + 3, (int)closeRect.getY() + 3, (int)closeRect.getMaxX() - 3, (int)closeRect.getMaxY() - 3);
 +    		g2.drawLine((int)closeRect.getX() + 3, (int)closeRect.getMaxY() - 3, (int)closeRect.getMaxX() - 3, (int)closeRect.getY() + 3);
 +    	}
++    	@Override
++    	public void update(Graphics g) {
++    		paint(g);
++    	}
 +    	
 +    	private void createControlShapes() {
 +    		int y = (getHeight() - 15) / 2;
@@ -1198,10 +1237,10 @@ index 0000000..c8edb8a
 +}
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/OSXTitleBar.java b/pivot-wtk/src/org/apache/pivot/wtk/OSXTitleBar.java
 new file mode 100644
-index 0000000..4dca755
+index 0000000..7d40e35
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/OSXTitleBar.java
-@@ -0,0 +1,389 @@
+@@ -0,0 +1,391 @@
 +package org.apache.pivot.wtk;
 +
 +import java.awt.AWTEvent;
@@ -1221,6 +1260,7 @@ index 0000000..4dca755
 +import java.awt.event.AWTEventListener;
 +import java.awt.event.MouseAdapter;
 +import java.awt.event.MouseEvent;
++import java.awt.event.WindowEvent;
 +import java.awt.geom.AffineTransform;
 +import java.awt.geom.Point2D;
 +import java.awt.geom.Rectangle2D;
@@ -1502,7 +1542,8 @@ index 0000000..4dca755
 +    						hostFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
 +    					}
 +    				}else if(localCloseRect.contains(e.getPoint())) {
-+    					System.exit(0);
++    					WindowEvent wev = new WindowEvent(hostFrame, WindowEvent.WINDOW_CLOSING);
++    	                Toolkit.getDefaultToolkit().getSystemEventQueue().postEvent(wev);
 +    				}
 +    				maskMinimized = maskMaximized = maskClosed = false;
 +    				repaint();
@@ -1931,10 +1972,10 @@ index 0000000..e2c86c3
 +}
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/TitleBar.java b/pivot-wtk/src/org/apache/pivot/wtk/TitleBar.java
 new file mode 100644
-index 0000000..c1fd236
+index 0000000..c4f621f
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/TitleBar.java
-@@ -0,0 +1,135 @@
+@@ -0,0 +1,149 @@
 +package org.apache.pivot.wtk;
 +
 +import java.awt.BorderLayout;
@@ -1944,8 +1985,6 @@ index 0000000..c1fd236
 +import java.awt.event.MouseEvent;
 +import java.util.ArrayList;
 +import java.util.List;
-+
-+import javax.swing.JPanel;
 +
 +
 +/**
@@ -2024,6 +2063,7 @@ index 0000000..c1fd236
 +	 * @param c		Subclass of {@link TitleBarControl}
 +	 */
 +	public void addTitleBarControl(TitleBarControl c) {
++		this.control = c;
 +		if(this.control != null) {
 +			remove(control);
 +		}
@@ -2036,10 +2076,18 @@ index 0000000..c1fd236
 +		}
 +	}
 +	
++	/**
++	 * Returns this {@code TitleBar}'s {@link TitleBarControl} if
++	 * any exists.
++	 * 
++	 * @return	the installed {@code TitleBarControl}
++	 */
++	public TitleBarControl getTitleBarControl() {
++		return control;
++	}
++	
 +	@Override
 +	public void paint(Graphics g) {
-+        super.paint(g);
-+        
 +        Graphics2D g2 = (Graphics2D)g;
 +        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 +        
@@ -2053,7 +2101,14 @@ index 0000000..c1fd236
 +        if(g2.getClipBounds().getSize().equals(getSize())) {
 +        	paintTitle(g2);
 +        }
++        //Paint the child component(TitleBarControl)
++        super.paint(g);
 +    }
++	
++	@Override
++	public void update(Graphics g) {
++		paint(g);
++	}
 +	
 +	protected abstract void paintTitle(Graphics2D g2);
 +	
@@ -2141,10 +2196,10 @@ index 0000000..bae1038
 +}
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/WindowsTitleBar.java b/pivot-wtk/src/org/apache/pivot/wtk/WindowsTitleBar.java
 new file mode 100644
-index 0000000..b5ec7e3
+index 0000000..368a001
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/WindowsTitleBar.java
-@@ -0,0 +1,422 @@
+@@ -0,0 +1,431 @@
 +package org.apache.pivot.wtk;
 +
 +import java.awt.AWTEvent;
@@ -2163,6 +2218,7 @@ index 0000000..b5ec7e3
 +import java.awt.event.AWTEventListener;
 +import java.awt.event.MouseAdapter;
 +import java.awt.event.MouseEvent;
++import java.awt.event.WindowEvent;
 +import java.awt.geom.Area;
 +import java.awt.geom.GeneralPath;
 +import java.awt.geom.Point2D;
@@ -2189,7 +2245,6 @@ index 0000000..b5ec7e3
 +	 */
 +	public WindowsTitleBar() {
 +		addTitleBarControl(createTitleBarControl());
-+		System.out.println("running latest windows title bar");
 +	}
 +	
 +	@Override
@@ -2204,7 +2259,7 @@ index 0000000..b5ec7e3
 +	 */
 +	@Override
 +	protected void fillTitleBar(Graphics2D g) {
-+		Rectangle r = g.getClipBounds();
++		Rectangle r = getBounds();
 +		Color ltGray = Color.GRAY;
 +		g.setColor(ltGray);
 +		g.fillRoundRect(0,0,r.width, r.height + 15, 15, 15);
@@ -2262,9 +2317,14 @@ index 0000000..b5ec7e3
 +    		paintControl(g);
 +    	}
 +    	
++    	@Override
++    	public void update(Graphics g) {
++    		paint(g);
++    	}
++    	
 +    	protected void paintControl(Graphics2D g) {
 +    		Rectangle r = g.getClipBounds();
-+    		Graphics2D g2 = (Graphics2D)g;//image.getGraphics();
++    		Graphics2D g2 = (Graphics2D)g;
 +    		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
 +    		
 +    		//The control box
@@ -2338,10 +2398,10 @@ index 0000000..b5ec7e3
 +    		colors = new Color[] { Color.DARK_GRAY, Color.LIGHT_GRAY };
 +    		lgp = new java.awt.LinearGradientPaint(start, end, fractions, colors, CycleMethod.NO_CYCLE);
 +    		
-+    		g2.setPaint(lgp);//Color.WHITE);
-+    		g2.fillRect(x, 10, 23, 16); //Button 1
-+    		g2.fillRect(x + 25, 10, 23, 16); //Button 2
-+    		g2.fillRect(x + 48, 10, 41, 17); //Button 3
++//    		g2.setPaint(lgp);
++//    		g2.fillRect(x, 10, 23, 16); //Button 1
++//    		g2.fillRect(x + 25, 10, 23, 16); //Button 2
++//    		g2.fillRect(x + 48, 10, 41, 17); //Button 3
 +    		
 +    		g2.setComposite(oldComp); //Reverse alpha composite
 +    		
@@ -2434,7 +2494,8 @@ index 0000000..b5ec7e3
 +    						hostFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
 +    					}
 +    				}else if(closeRect.contains(e.getPoint())) {
-+    					System.exit(0);
++    					WindowEvent wev = new WindowEvent(hostFrame, WindowEvent.WINDOW_CLOSING);
++    	                Toolkit.getDefaultToolkit().getSystemEventQueue().postEvent(wev);
 +    				}
 +    				maskMinimized = maskMaximized = maskClosed = false;
 +    				repaint();
@@ -2523,6 +2584,9 @@ index 0000000..b5ec7e3
 +	    				SwingUtilities.invokeLater(new Runnable() {
 +	    					public void run() {
 +	    						hostFrame = (java.awt.Frame)SwingUtilities.getAncestorOfClass(DesktopFrame.class, WindowsTitleBarControl.this);
++	    						WindowsTitleBar.this.invalidate();
++	    						WindowsTitleBar.this.validate();
++	    						WindowsTitleBar.this.repaint();
 +	    					}
 +	    				});
 +    				}
