@@ -1593,10 +1593,10 @@ index 0000000..4dca755
 +}
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/SwingContainer.java b/pivot-wtk/src/org/apache/pivot/wtk/SwingContainer.java
 new file mode 100644
-index 0000000..e2c86c3
+index 0000000..aca9929
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/SwingContainer.java
-@@ -0,0 +1,332 @@
+@@ -0,0 +1,340 @@
 +package org.apache.pivot.wtk;
 +
 +import java.awt.AWTEvent;
@@ -1762,6 +1762,14 @@ index 0000000..e2c86c3
 +		
 +		visibilityTimer.setRepeats(false);
 +		
++	}
++	
++	/**
++	 * Must be called by users to get rid of {@link Window} resource.
++	 */
++	public void dispose() {
++		delegate.setVisible(false);
++		delegate.dispose();
 +	}
 +	
 +	/**
