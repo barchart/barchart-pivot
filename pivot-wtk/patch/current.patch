@@ -1634,10 +1634,10 @@ index 0000000..7d40e35
 +}
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/SwingContainer.java b/pivot-wtk/src/org/apache/pivot/wtk/SwingContainer.java
 new file mode 100644
-index 0000000..aca9929
+index 0000000..0603412
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/SwingContainer.java
-@@ -0,0 +1,340 @@
+@@ -0,0 +1,347 @@
 +package org.apache.pivot.wtk;
 +
 +import java.awt.AWTEvent;
@@ -1769,6 +1769,7 @@ index 0000000..aca9929
 +							if((e.getNewState() & JFrame.ICONIFIED) == JFrame.ICONIFIED) {
 +								delegate.setVisible(false);
 +							}else{
++								SwingContainer.this.getParent().invalidate();
 +								delegate.setVisible(true);
 +								delegate.toFront();
 +							}
@@ -1803,6 +1804,12 @@ index 0000000..aca9929
 +		
 +		visibilityTimer.setRepeats(false);
 +		
++	}
++	
++	@Override
++	public void setVisible(boolean b) {
++		System.out.println("visibility called");
++		delegate.setVisible(b);
 +	}
 +	
 +	/**
