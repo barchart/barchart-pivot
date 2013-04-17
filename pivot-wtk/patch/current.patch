@@ -94,10 +94,10 @@ index eb23b16..6b90237 100644
          String osName = System.getProperty("os.name");
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java b/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java
 new file mode 100644
-index 0000000..0419d5b
+index 0000000..e8c047a
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java
-@@ -0,0 +1,1137 @@
+@@ -0,0 +1,1146 @@
 +package org.apache.pivot.wtk;
 +
 +import java.awt.BasicStroke;
@@ -253,6 +253,7 @@ index 0000000..0419d5b
 +	}
 +	
 +	public DesktopFrame(Style style) {
++		System.out.println("Here we are");
 +		setUndecorated(true);
 +		
 +		setLayout(new BorderLayout());
@@ -957,6 +958,14 @@ index 0000000..0419d5b
 +    }
 +    
 +    /**
++     * Removes the specified {@link DragListener}
++     * @param d
++     */
++    public void removeDragListener(DragListener d) {
++    	dragListeners.remove(d);
++    }
++    
++    /**
 +     * Fires a window dragged event to registered listeners.
 +     * 
 +     * @param oldLoc
@@ -1634,13 +1643,14 @@ index 0000000..7d40e35
 +}
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/SwingContainer.java b/pivot-wtk/src/org/apache/pivot/wtk/SwingContainer.java
 new file mode 100644
-index 0000000..0603412
+index 0000000..184e9d3
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/SwingContainer.java
-@@ -0,0 +1,347 @@
+@@ -0,0 +1,414 @@
 +package org.apache.pivot.wtk;
 +
 +import java.awt.AWTEvent;
++import java.awt.EventQueue;
 +import java.awt.Point;
 +import java.awt.Toolkit;
 +import java.awt.event.AWTEventListener;
@@ -1650,19 +1660,13 @@ index 0000000..0603412
 +import java.awt.event.MouseListener;
 +import java.awt.event.WindowEvent;
 +import java.awt.event.WindowStateListener;
++import java.util.ArrayList;
++import java.util.List;
 +
 +import javax.swing.JFrame;
 +import javax.swing.JWindow;
 +
-+import org.apache.pivot.wtk.Component;
-+import org.apache.pivot.wtk.Container;
-+import org.apache.pivot.wtk.ContainerListener;
-+import org.apache.pivot.wtk.DesktopFrame;
 +import org.apache.pivot.wtk.DesktopFrame.DragListener;
-+import org.apache.pivot.wtk.Display;
-+import org.apache.pivot.wtk.ImageView;
-+import org.apache.pivot.wtk.Skin;
-+import org.apache.pivot.wtk.TitleBar;
 +import org.apache.pivot.wtk.skin.PanelSkin;
 +
 +
@@ -1676,7 +1680,7 @@ index 0000000..0603412
 + *     |            o  -------------------
 + *     |               |                 | 
 + *     |               |                 |
-+ *     |               |                 | <---- Swing JWindow delegate which receives size information
++ *     |               |                 | <---- Awt Frame delegate which receives size information
 + *     |               |                 |		 and calculates location information translated to screen
 + *     |               |                 |		 coordinates from messages delegated from the Apache Pivot
 + *     |               |                 |       component.
@@ -1724,6 +1728,14 @@ index 0000000..0603412
 +	private java.awt.Insets insets;
 +	private javax.swing.Timer visibilityTimer;
 +	
++	private DragListener dragListener;
++	private WindowStateListener windowStateListener;
++	private TitleBar.IconizeListener iconizeListener;
++	private ComponentAdapter componentAdapter;
++	private AWTEventListener awtListener;
++	
++	private List<WindowStateListener> windowStateListeners;
++	
 +	
 +	/**
 +	 * Creates a new {@code SwingContainer}
@@ -1734,7 +1746,7 @@ index 0000000..0603412
 +		delegate = new Delegate();
 +		
 +		//Keeps the delegate window in front.
-+		Toolkit.getDefaultToolkit().addAWTEventListener(new AWTEventListener() {
++		Toolkit.getDefaultToolkit().addAWTEventListener(awtListener = new AWTEventListener() {
 +			@Override
 +			public void eventDispatched(AWTEvent event) {
 +				if(event.getID() == MouseEvent.MOUSE_PRESSED) {
@@ -1753,7 +1765,7 @@ index 0000000..0603412
 +				
 +				topLevelWindow = display.getHostWindow();
 +				if(topLevelWindow instanceof DesktopFrame) {
-+					((DesktopFrame)topLevelWindow).addDragListener(new DragListener() {
++					((DesktopFrame)topLevelWindow).addDragListener(dragListener = new DragListener() {
 +						public void windowDragged(Point oldLoc, Point newLoc) {
 +							delegate.setVisible(false);
 +						}
@@ -1763,21 +1775,33 @@ index 0000000..0603412
 +							delegate.setVisible(true);
 +						}
 +					});
-+					((DesktopFrame)topLevelWindow).addWindowStateListener(new WindowStateListener() {
++					((DesktopFrame)topLevelWindow).addWindowStateListener(windowStateListener = new WindowStateListener() {
 +						@Override
 +						public void windowStateChanged(WindowEvent e) {
 +							if((e.getNewState() & JFrame.ICONIFIED) == JFrame.ICONIFIED) {
 +								delegate.setVisible(false);
 +							}else{
-+								SwingContainer.this.getParent().invalidate();
-+								delegate.setVisible(true);
-+								delegate.toFront();
++								delegate.setVisible(false);
++								(new Thread() {
++									public void run() {
++										try{Thread.sleep(10);}catch(Exception e) {e.printStackTrace(); }
++										EventQueue.invokeLater(new Runnable() {
++											public void run() {
++												SwingContainer.this.getParent().invalidate();
++												SwingContainer.this.getParent().layout();
++												delegate.setVisible(true);
++												delegate.toFront();
++											}
++										});
++									}
++								}).start();
++								
 +							}
 +						}
 +					});
 +					TitleBar tb = ((DesktopFrame)topLevelWindow).getTitleBar();
 +					if(tb != null) {
-+						tb.addIconizeListener(new TitleBar.IconizeListener() {
++						tb.addIconizeListener(iconizeListener = new TitleBar.IconizeListener() {
 +							@Override
 +							public void frameWillIconize() {
 +								delegate.setVisible(false);
@@ -1785,7 +1809,7 @@ index 0000000..0603412
 +						});
 +					}
 +				}
-+				topLevelWindow.addComponentListener(new ComponentAdapter() {
++				topLevelWindow.addComponentListener(componentAdapter = new ComponentAdapter() {
 +					@Override
 +					public void componentMoved(ComponentEvent e) {
 +						Point p = getLocationOnScreen();
@@ -1816,8 +1840,60 @@ index 0000000..0603412
 +	 * Must be called by users to get rid of {@link Window} resource.
 +	 */
 +	public void dispose() {
++		System.out.println("dispose called");
 +		delegate.setVisible(false);
 +		delegate.dispose();
++		removeListeners();
++		fireWindowDisposeEvent();
++	}
++	
++	/**
++	 * Adds the specified {@link WindowStateListener} to this
++	 * {@code SwingContainer}
++	 * 
++	 * @param wse
++	 */
++	public void addWindowStateListener(WindowStateListener wse) {
++		if(windowStateListeners == null) {
++			windowStateListeners = new ArrayList<WindowStateListener>();
++		}
++		windowStateListeners.add(wse);
++	}
++	
++	/**
++	 * Removes the specified {@link WindowStateListener} from registration.
++	 * @param wse
++	 */
++	public void removeWindowStateListener(WindowStateListener wse) {
++		if(windowStateListeners == null) return;
++		windowStateListeners.remove(wse);
++	}
++	
++	/**
++	 * Notifies all registered {@link WindowStateEvent} listeners that
++	 * this container will dismiss it's delegate.
++	 */
++	private void fireWindowDisposeEvent() {
++		if(windowStateListeners != null) {
++			WindowEvent we = new WindowEvent(topLevelWindow, WindowEvent.WINDOW_CLOSING);
++			for(WindowStateListener wse : windowStateListeners) {
++				wse.windowStateChanged(we);
++			}
++		}
++	}
++	
++	/**
++	 * Removes all the listeners added to control and distribute
++	 * behavioral state.
++	 */
++	public void removeListeners() {
++		if(topLevelWindow != null) {
++			((DesktopFrame)topLevelWindow).removeDragListener(dragListener);
++			topLevelWindow.removeWindowStateListener(windowStateListener);
++			((DesktopFrame)topLevelWindow).getTitleBar().removeIconizeListener(iconizeListener);
++			topLevelWindow.removeComponentListener(componentAdapter);
++			Toolkit.getDefaultToolkit().removeAWTEventListener(awtListener);
++		}
 +	}
 +	
 +	/**
@@ -1876,6 +1952,7 @@ index 0000000..0603412
 +			delegate.remove(child);
 +		}
 +		delegate.add(c);
++		c.setFocusable(true);
 +	}
 +	
 +	/**
@@ -1951,12 +2028,11 @@ index 0000000..0603412
 +	 * @author David Ray
 +	 */
 +	@SuppressWarnings("serial")
-+	private class Delegate extends JWindow {
++	private class Delegate extends java.awt.Frame {
 +		private java.awt.Component child;
 +		
 +		public Delegate() {
-+//			JRootPane root = getRootPane();
-+//			root.putClientProperty("Window.shadow", Boolean.FALSE);
++			setUndecorated(true);
 +		}
 +		
 +		@Override
