@@ -1643,10 +1643,10 @@ index 0000000..7d40e35
 +}
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/SwingContainer.java b/pivot-wtk/src/org/apache/pivot/wtk/SwingContainer.java
 new file mode 100644
-index 0000000..184e9d3
+index 0000000..92a737a
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/SwingContainer.java
-@@ -0,0 +1,414 @@
+@@ -0,0 +1,426 @@
 +package org.apache.pivot.wtk;
 +
 +import java.awt.AWTEvent;
@@ -1734,7 +1734,7 @@ index 0000000..184e9d3
 +	private ComponentAdapter componentAdapter;
 +	private AWTEventListener awtListener;
 +	
-+	private List<WindowStateListener> windowStateListeners;
++	private List<WindowDisposeListener> windowDisposeListeners;
 +	
 +	
 +	/**
@@ -1847,17 +1847,29 @@ index 0000000..184e9d3
 +		fireWindowDisposeEvent();
 +	}
 +	
++	public class WindowDisposeEvent {
++		SwingContainer container;
++		int eventType;
++		public WindowDisposeEvent(SwingContainer c, int windowEventType) {
++			this.container = c;
++			this.eventType = windowEventType;
++		}
++	}
++	public interface WindowDisposeListener {
++		public void windowDisposed(WindowDisposeEvent d);
++	}
++	
 +	/**
 +	 * Adds the specified {@link WindowStateListener} to this
 +	 * {@code SwingContainer}
 +	 * 
 +	 * @param wse
 +	 */
-+	public void addWindowStateListener(WindowStateListener wse) {
-+		if(windowStateListeners == null) {
-+			windowStateListeners = new ArrayList<WindowStateListener>();
++	public void addWindowDisposeListener(WindowDisposeListener wdl) {
++		if(windowDisposeListeners == null) {
++			windowDisposeListeners = new ArrayList<WindowDisposeListener>();
 +		}
-+		windowStateListeners.add(wse);
++		windowDisposeListeners.add(wdl);
 +	}
 +	
 +	/**
@@ -1865,8 +1877,8 @@ index 0000000..184e9d3
 +	 * @param wse
 +	 */
 +	public void removeWindowStateListener(WindowStateListener wse) {
-+		if(windowStateListeners == null) return;
-+		windowStateListeners.remove(wse);
++		if(windowDisposeListeners == null) return;
++		windowDisposeListeners.remove(wse);
 +	}
 +	
 +	/**
@@ -1874,10 +1886,10 @@ index 0000000..184e9d3
 +	 * this container will dismiss it's delegate.
 +	 */
 +	private void fireWindowDisposeEvent() {
-+		if(windowStateListeners != null) {
-+			WindowEvent we = new WindowEvent(topLevelWindow, WindowEvent.WINDOW_CLOSING);
-+			for(WindowStateListener wse : windowStateListeners) {
-+				wse.windowStateChanged(we);
++		if(windowDisposeListeners != null) {
++			WindowDisposeEvent we = new WindowDisposeEvent(this, WindowEvent.WINDOW_CLOSING);
++			for(WindowDisposeListener wse : windowDisposeListeners) {
++				wse.windowDisposed(we);
 +			}
 +		}
 +	}
