@@ -1643,10 +1643,10 @@ index 0000000..7d40e35
 +}
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/SwingContainer.java b/pivot-wtk/src/org/apache/pivot/wtk/SwingContainer.java
 new file mode 100644
-index 0000000..92a737a
+index 0000000..6ee0219
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/SwingContainer.java
-@@ -0,0 +1,426 @@
+@@ -0,0 +1,434 @@
 +package org.apache.pivot.wtk;
 +
 +import java.awt.AWTEvent;
@@ -1853,6 +1853,14 @@ index 0000000..92a737a
 +		public WindowDisposeEvent(SwingContainer c, int windowEventType) {
 +			this.container = c;
 +			this.eventType = windowEventType;
++		}
++		
++		public SwingContainer getComponent() {
++			return container;
++		}
++		
++		public int getEventType() { 
++			return eventType;
 +		}
 +	}
 +	public interface WindowDisposeListener {
