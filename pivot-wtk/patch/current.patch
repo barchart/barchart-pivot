@@ -1643,14 +1643,15 @@ index 0000000..7d40e35
 +}
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/SwingContainer.java b/pivot-wtk/src/org/apache/pivot/wtk/SwingContainer.java
 new file mode 100644
-index 0000000..6ee0219
+index 0000000..29a5af8
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/SwingContainer.java
-@@ -0,0 +1,434 @@
+@@ -0,0 +1,538 @@
 +package org.apache.pivot.wtk;
 +
 +import java.awt.AWTEvent;
 +import java.awt.EventQueue;
++import java.awt.Graphics;
 +import java.awt.Point;
 +import java.awt.Toolkit;
 +import java.awt.event.AWTEventListener;
@@ -1734,6 +1735,8 @@ index 0000000..6ee0219
 +	private ComponentAdapter componentAdapter;
 +	private AWTEventListener awtListener;
 +	
++	private java.awt.Component occupant;
++	
 +	private List<WindowDisposeListener> windowDisposeListeners;
 +	
 +	
@@ -1743,14 +1746,15 @@ index 0000000..6ee0219
 +	 */
 +	public SwingContainer() {
 +		installSkin(ImageView.class);
-+		delegate = new Delegate();
 +		
 +		//Keeps the delegate window in front.
 +		Toolkit.getDefaultToolkit().addAWTEventListener(awtListener = new AWTEventListener() {
 +			@Override
 +			public void eventDispatched(AWTEvent event) {
 +				if(event.getID() == MouseEvent.MOUSE_PRESSED) {
-+					delegate.toFront();				
++					if(delegate != null) {
++						delegate.toFront();		
++					}
 +				}
 +			}
 +		}, AWTEvent.MOUSE_EVENT_MASK | AWTEvent.MOUSE_MOTION_EVENT_MASK);
@@ -1761,9 +1765,21 @@ index 0000000..6ee0219
 +					try { Thread.sleep(2000); } catch(Exception e) { e.printStackTrace(); }
 +				}
 +				
++				topLevelWindow = display.getHostWindow();
++				
++				//Delegate(java.awt.Window) must be instantiated with the top level window
++				//owner in order to receive focus. Therefore, we must wait until the top
++				//level window becomes available before instantiating the delegate(window).
++				//In addition all calls to mutate the delegate before it is instantiated -
++				//must also be delayed.
++				delegate = new Delegate(topLevelWindow);
++				if(occupant != null) {
++					processComponentAdd(occupant);
++					occupant = null;
++				}
++				
 +				getParent().getContainerListeners().add(createContainerListener());
 +				
-+				topLevelWindow = display.getHostWindow();
 +				if(topLevelWindow instanceof DesktopFrame) {
 +					((DesktopFrame)topLevelWindow).addDragListener(dragListener = new DragListener() {
 +						public void windowDragged(Point oldLoc, Point newLoc) {
@@ -1819,6 +1835,8 @@ index 0000000..6ee0219
 +			}
 +		}).start();
 +		
++		//Timer which is restarted to avoid setting the delegate visible until after any
++		//relocation or resizing is done.
 +		visibilityTimer = new javax.swing.Timer(250, new java.awt.event.ActionListener() {
 +			public void actionPerformed(java.awt.event.ActionEvent e) {
 +				delegate.setVisible(true);
@@ -1832,7 +1850,6 @@ index 0000000..6ee0219
 +	
 +	@Override
 +	public void setVisible(boolean b) {
-+		System.out.println("visibility called");
 +		delegate.setVisible(b);
 +	}
 +	
@@ -1840,13 +1857,16 @@ index 0000000..6ee0219
 +	 * Must be called by users to get rid of {@link Window} resource.
 +	 */
 +	public void dispose() {
-+		System.out.println("dispose called");
 +		delegate.setVisible(false);
 +		delegate.dispose();
 +		removeListeners();
 +		fireWindowDisposeEvent();
 +	}
 +	
++	/**
++	 * Custom event to notify interested listeners of recent dispose
++	 * call on {@link SwingContainer}
++	 */
 +	public class WindowDisposeEvent {
 +		SwingContainer container;
 +		int eventType;
@@ -1863,6 +1883,11 @@ index 0000000..6ee0219
 +			return eventType;
 +		}
 +	}
++	
++	/**
++	 * Listeners of this type receive notifications when this
++	 * {@link SwingContainer} has dispose called on it.
++	 */
 +	public interface WindowDisposeListener {
 +		public void windowDisposed(WindowDisposeEvent d);
 +	}
@@ -1937,8 +1962,11 @@ index 0000000..6ee0219
 +	 * @param	h	height
 +	 */
 +	public void setSize(int w, int h) {
-+		visibilityTimer.restart();
-+		delegate.setVisible(false);
++		if(delegate != null) {
++			visibilityTimer.restart();
++			delegate.setVisible(false);
++		}
++		
 +		super.setSize(w,h);
 +		resizeWindow(w, h);
 +		invalidate();
@@ -1967,10 +1995,29 @@ index 0000000..6ee0219
 +		if(c == null) {
 +			throw new IllegalArgumentException("Component \"c\" cannot be null");
 +		}
++		
++		if(delegate == null) {
++			occupant = c;
++		}else{
++			processComponentAdd(c);
++		}
++		
++	}
++	
++	/**
++	 * Called directly if the "delegate" is instantiated, or by the
++	 * delayed initialization thread which waits for the top level
++	 * window to be available before instantiating the "delegate" so 
++	 * that the parent window can be assigned at construction time.
++	 * 
++	 * @param c
++	 */
++	private void processComponentAdd(java.awt.Component c) {
 +		java.awt.Component child = delegate.getChild();
 +		if(child != null) {
 +			delegate.remove(child);
 +		}
++	
 +		delegate.add(c);
 +		c.setFocusable(true);
 +	}
@@ -2016,8 +2063,12 @@ index 0000000..6ee0219
 +	 * @param y		the vertical coordinate
 +	 */
 +	public void moveWindow(int x, int y) {
-+		delegate.setLocation(x, y);
-+		delegate.toFront();
++		if(delegate == null) {
++			queueMoveWindow(x, y);
++		}else{
++			delegate.setLocation(x, y);
++			delegate.toFront();
++		}
 +	}
 +	
 +	/**
@@ -2027,8 +2078,56 @@ index 0000000..6ee0219
 +	 * @param h		the new delegate height
 +	 */
 +	public void resizeWindow(int w, int h) {
-+		delegate.setSize(w,h);
-+		delegate.toFront();
++		if(delegate == null) {
++			queueResizeWindow(w, h);
++		}else{
++			delegate.setSize(w,h);
++			delegate.toFront();
++		}
++	}
++	
++	/**
++	 * Waits until the delegate is available before issuing move
++	 * calls.
++	 * 
++	 * @param x		the new x location
++	 * @param y		the new y location
++	 */
++	private void queueMoveWindow(final int x, final int y) {
++		(new Thread() {
++			public void run() {
++				while(delegate == null) {
++					try {Thread.sleep(100);}catch(Exception e) {e.printStackTrace();}
++				}
++				
++				EventQueue.invokeLater(new Runnable() {
++					public void run() {
++						SwingContainer.this.moveWindow(x, y);
++					}
++				});
++			}
++		}).start();
++	}
++	
++	/**
++	 * Waits until delegate is available before issuing resize calls.
++	 * @param w		the new width
++	 * @param h		the new height
++	 */
++	private void queueResizeWindow(final int w, final int h) {
++		(new Thread() {
++			public void run() {
++				while(delegate == null) {
++					try {Thread.sleep(100);}catch(Exception e) {e.printStackTrace();}
++				}
++				
++				EventQueue.invokeLater(new Runnable() {
++					public void run() {
++						SwingContainer.this.resizeWindow(w, h);
++					}
++				});
++			}
++		}).start();
 +	}
 +	
 +	/**
@@ -2048,11 +2147,16 @@ index 0000000..6ee0219
 +	 * @author David Ray
 +	 */
 +	@SuppressWarnings("serial")
-+	private class Delegate extends java.awt.Frame {
++	private class Delegate extends java.awt.Window {
 +		private java.awt.Component child;
 +		
-+		public Delegate() {
-+			setUndecorated(true);
++		public Delegate(java.awt.Window parent) {
++			super(parent);
++		}
++		
++		@Override
++		public void update(Graphics g) {
++			paint(g);
 +		}
 +		
 +		@Override
