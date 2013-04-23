@@ -94,10 +94,10 @@ index eb23b16..6b90237 100644
          String osName = System.getProperty("os.name");
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java b/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java
 new file mode 100644
-index 0000000..e8c047a
+index 0000000..82452ae
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java
-@@ -0,0 +1,1146 @@
+@@ -0,0 +1,1145 @@
 +package org.apache.pivot.wtk;
 +
 +import java.awt.BasicStroke;
@@ -253,7 +253,6 @@ index 0000000..e8c047a
 +	}
 +	
 +	public DesktopFrame(Style style) {
-+		System.out.println("Here we are");
 +		setUndecorated(true);
 +		
 +		setLayout(new BorderLayout());
