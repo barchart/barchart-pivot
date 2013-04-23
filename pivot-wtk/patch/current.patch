@@ -94,10 +94,10 @@ index eb23b16..6b90237 100644
          String osName = System.getProperty("os.name");
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java b/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java
 new file mode 100644
-index 0000000..82452ae
+index 0000000..0bf98cf
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java
-@@ -0,0 +1,1145 @@
+@@ -0,0 +1,1137 @@
 +package org.apache.pivot.wtk;
 +
 +import java.awt.BasicStroke;
@@ -118,6 +118,7 @@ index 0000000..82452ae
 +import java.awt.Point;
 +import java.awt.Rectangle;
 +import java.awt.Toolkit;
++import java.awt.event.ComponentEvent;
 +import java.awt.event.MouseAdapter;
 +import java.awt.event.MouseEvent;
 +import java.awt.event.MouseListener;
@@ -462,22 +463,11 @@ index 0000000..82452ae
 +    private Panel createMainContentPanel() {
 +        Panel main = new Panel() {
 +        	@Override
-+        	public void paint(Graphics g) {
-+        		super.paint(g);
-+        		if(configuredStyle == Style.NATIVE_WIN) {
-+        			Rectangle r = g.getClipBounds();
-+        			
-+            		g.setColor(Color.BLACK);
-+            		g.drawLine(0,0,0,r.height);
-+            		g.drawLine(0, r.height - 1, r.width, r.height - 1);
-+            		g.drawLine(r.width - 1, 0, r.width - 1, r.height - 1);
-+            	}
-+        	}
-+        	@Override
 +        	public void update(Graphics g) {
 +        		paint(g);
 +        	}
 +        };
++       
 +        main.setPreferredSize(new Dimension(300, 200));
 +        main.setLayout(new BorderLayout());
 +        return main;
@@ -1083,6 +1073,8 @@ index 0000000..82452ae
 +    		setBounds(frameRect);
 +    		fireWindowDragged(prev.getLocation(), frameRect.getLocation());
 +    		startPoint = p;
++    		
++    		repaint();
 +    	}
 +    	
 +    	public void mouseReleased(MouseEvent m) {
