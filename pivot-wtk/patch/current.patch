@@ -1634,10 +1634,10 @@ index 0000000..7d40e35
 +}
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/SwingContainer.java b/pivot-wtk/src/org/apache/pivot/wtk/SwingContainer.java
 new file mode 100644
-index 0000000..fcd0e22
+index 0000000..2621ff8
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/SwingContainer.java
-@@ -0,0 +1,615 @@
+@@ -0,0 +1,652 @@
 +package org.apache.pivot.wtk;
 +
 +import java.awt.AWTEvent;
@@ -1874,7 +1874,19 @@ index 0000000..fcd0e22
 +
 +	@Override
 +	public void setVisible(boolean b) {
-+		delegate.setVisible(b);
++		if(delegate == null) {
++			queueSetVisible(b);
++		}else{
++			delegate.setVisible(b);
++		}
++	}
++	
++	/**
++	 * Returns the overlying delegate window
++	 * @return	the overlying delegate window
++	 */
++	public java.awt.Window getHostWindow() {
++		return delegate;
 +	}
 +
 +	/**
@@ -2122,6 +2134,31 @@ index 0000000..fcd0e22
 +			delegate.setSize(w, h);
 +			delegate.toFront();
 +		}
++	}
++	
++	/**
++	 * 
++	 * @param x
++	 * @param y
++	 */
++	private void queueSetVisible(final boolean b) {
++		(new Thread() {
++			public void run() {
++				while (delegate == null) {
++					try {
++						Thread.sleep(100);
++					} catch (Exception e) {
++						e.printStackTrace();
++					}
++				}
++
++				EventQueue.invokeLater(new Runnable() {
++					public void run() {
++						SwingContainer.this.setVisible(b);
++					}
++				});
++			}
++		}).start();
 +	}
 +
 +	/**
