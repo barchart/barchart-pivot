@@ -94,10 +94,10 @@ index eb23b16..6b90237 100644
          String osName = System.getProperty("os.name");
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java b/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java
 new file mode 100644
-index 0000000..0bf98cf
+index 0000000..9b9bd12
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java
-@@ -0,0 +1,1137 @@
+@@ -0,0 +1,1148 @@
 +package org.apache.pivot.wtk;
 +
 +import java.awt.BasicStroke;
@@ -129,6 +129,7 @@ index 0000000..0bf98cf
 +import java.util.List;
 +import java.util.Locale;
 +
++import javax.swing.JFrame;
 +import javax.swing.SwingUtilities;
 +
 +
@@ -1085,6 +1086,16 @@ index 0000000..0bf98cf
 +    		fireDraggingStopped();
 +    	}
 +    	
++    	public void mouseClicked(MouseEvent e) {
++    		if(e.getClickCount() > 1) {
++    			if((getExtendedState() & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH) {
++    				setExtendedState(JFrame.NORMAL);
++    			}else{
++    				setExtendedState(JFrame.MAXIMIZED_BOTH);
++    			}
++    		}
++    	}
++    	
 +    	private Rectangle moveRectangle(Rectangle r, int xAmount, int yAmount) {
 +    		Rectangle rect = new Rectangle(r);
 +    		rect.setLocation(rect.x + xAmount, rect.y + yAmount);
@@ -1237,10 +1248,10 @@ index 0000000..0bf98cf
 +}
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/OSXTitleBar.java b/pivot-wtk/src/org/apache/pivot/wtk/OSXTitleBar.java
 new file mode 100644
-index 0000000..7d40e35
+index 0000000..6e9bd46
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/OSXTitleBar.java
-@@ -0,0 +1,391 @@
+@@ -0,0 +1,397 @@
 +package org.apache.pivot.wtk;
 +
 +import java.awt.AWTEvent;
@@ -1268,7 +1279,13 @@ index 0000000..7d40e35
 +import javax.swing.JFrame;
 +import javax.swing.SwingUtilities;
 +
-+
++/**
++ * Used in conjunction with the {@link DesktopFrame} to provide an OSX-like 
++ * window title bar.
++ *  
++ * @author David Ray
++ *
++ */
 +@SuppressWarnings("serial")
 +public class OSXTitleBar extends TitleBar {
 +	
