@@ -1,5 +1,5 @@
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/DesktopApplicationContext.java b/pivot-wtk/src/org/apache/pivot/wtk/DesktopApplicationContext.java
-index eb23b16..6b90237 100644
+index eb23b16..0cabee4 100644
 --- a/pivot-wtk/src/org/apache/pivot/wtk/DesktopApplicationContext.java
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/DesktopApplicationContext.java
 @@ -192,6 +192,26 @@ public final class DesktopApplicationContext extends ApplicationContext {
@@ -45,7 +45,28 @@ index eb23b16..6b90237 100644
                  | AWTEvent.WINDOW_STATE_EVENT_MASK);
  
              // Disable focus traversal keys
-@@ -479,7 +501,7 @@ public final class DesktopApplicationContext extends ApplicationContext {
+@@ -280,7 +302,7 @@ public final class DesktopApplicationContext extends ApplicationContext {
+     }
+ 
+     // Native host dialog for secondary displays
+-    private static class HostDialog extends java.awt.Dialog implements TitledWindow {
++    private static class HostDialog extends java.awt.Frame implements TitledWindow {
+         private static final long serialVersionUID = 5340356674429280196L;
+ 
+         private DisplayHost displayHost = new DesktopDisplayHost();
+@@ -288,10 +310,7 @@ public final class DesktopApplicationContext extends ApplicationContext {
+         private DisplayListener displayCloseListener;
+ 
+         public HostDialog(java.awt.Window owner, boolean modal, DisplayListener displayCloseListener) {
+-            super(owner, modal ?
+-                java.awt.Dialog.ModalityType.APPLICATION_MODAL : java.awt.Dialog.ModalityType.MODELESS);
+-
+-            this.displayCloseListener = displayCloseListener;
++        	this.displayCloseListener = displayCloseListener;
+ 
+             enableEvents(AWTEvent.WINDOW_EVENT_MASK);
+ 
+@@ -479,7 +498,7 @@ public final class DesktopApplicationContext extends ApplicationContext {
          boolean center = false;
          boolean resizable = true;
          boolean maximized = false;
@@ -54,7 +75,7 @@ index eb23b16..6b90237 100644
          boolean fullScreen = false;
          boolean preserveSplashScreen = false;
  
-@@ -564,7 +586,7 @@ public final class DesktopApplicationContext extends ApplicationContext {
+@@ -564,7 +583,7 @@ public final class DesktopApplicationContext extends ApplicationContext {
          displays.add(primaryDisplayHost.getDisplay());
  
          // Create the windowed host frame
@@ -63,7 +84,7 @@ index eb23b16..6b90237 100644
          windowedHostFrame.add(primaryDisplayHost);
          windowedHostFrame.setUndecorated(undecorated);
  
-@@ -647,6 +669,28 @@ public final class DesktopApplicationContext extends ApplicationContext {
+@@ -647,6 +666,28 @@ public final class DesktopApplicationContext extends ApplicationContext {
              });
          }
      }
@@ -1649,6 +1670,22 @@ index 0000000..6e9bd46
 +    	}
 +	}
 +}
+diff --git a/pivot-wtk/src/org/apache/pivot/wtk/ScrollBar.java b/pivot-wtk/src/org/apache/pivot/wtk/ScrollBar.java
+index 4c211d2..ad550f4 100644
+--- a/pivot-wtk/src/org/apache/pivot/wtk/ScrollBar.java
++++ b/pivot-wtk/src/org/apache/pivot/wtk/ScrollBar.java
+@@ -305,8 +305,9 @@ public class ScrollBar extends Container {
+             }
+ 
+             if (value + extent > end) {
+-                throw new IllegalArgumentException(String.format
+-                    ("value (%d) + extent (%d) is greater than end (%d)", value, extent, end));
++            	return;
++//                throw new IllegalArgumentException(String.format
++//                    ("value (%d) + extent (%d) is greater than end (%d)", value, extent, end));
+             }
+ 
+             this.value = value;
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/SwingContainer.java b/pivot-wtk/src/org/apache/pivot/wtk/SwingContainer.java
 new file mode 100644
 index 0000000..2621ff8
