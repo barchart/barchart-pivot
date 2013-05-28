@@ -288,7 +288,7 @@
 		}
 
 		// Invoke git apply.		
-		def command = ([ "git", "apply", "--verbose" ] + fileList).join(" ")
+		def command = ([ "git", "apply", "--verbose", "--ignore-space-change", "--ignore-whitespace" ] + fileList).join(" ")
 		println "### Git command: ${command}"
 		def process = command.execute(null, baseDir) 
 		def std = new StringBuilder()
