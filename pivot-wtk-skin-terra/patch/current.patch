@@ -1,0 +1,24 @@
+diff --git a/pivot-wtk-skin-terra/src/org/apache/pivot/wtk/skin/terra/TerraVFSBrowserSkin.java b/pivot-wtk-skin-terra/src/org/apache/pivot/wtk/skin/terra/TerraVFSBrowserSkin.java
+index eaf0707..c94f91c 100644
+--- a/pivot-wtk-skin-terra/src/org/apache/pivot/wtk/skin/terra/TerraVFSBrowserSkin.java
++++ b/pivot-wtk-skin-terra/src/org/apache/pivot/wtk/skin/terra/TerraVFSBrowserSkin.java
+@@ -503,7 +503,8 @@ public class TerraVFSBrowserSkin extends VFSBrowserSkin {
+                 result = 1;
+             } else {
+                 // Do the compare according to the rules of the file system
+-                result = f1.compareTo(f2);
++                // result = f1.compareTo(f2);
++            	throw new UnsupportedOperationException("FileObject does not implement comparable in commons-vfs2 v 2.0");
+             }
+             return result;
+         }
+@@ -523,7 +524,8 @@ public class TerraVFSBrowserSkin extends VFSBrowserSkin {
+                 result = 1;
+             } else {
+                 // Do the compare according to the rules of the file system
+-                result = f2.compareTo(f1);
++                // result = f2.compareTo(f1);
++            	throw new UnsupportedOperationException("FileObject does not implement comparable in commons-vfs2 v 2.0");
+             }
+             return result;
+         }
