@@ -28,11 +28,12 @@
 		<!-- </dependency> -->
 
 		<!-- FIXME verify barchart-platform can pick up this dependency. -->
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-vfs2</artifactId>
-			<version>2.0</version>
-		</dependency>
+		<!-- Keep disabled till this feature is stable in the pivot trunk. -->
+		<!-- <dependency> -->
+		<!-- <groupId>org.apache.commons</groupId> -->
+		<!-- <artifactId>commons-vfs2</artifactId> -->
+		<!-- <version>2.0</version> -->
+		<!-- </dependency> -->
 
 	</dependencies>
 
