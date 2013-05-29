@@ -2568,19 +2568,6 @@ index 0000000..bae1038
 +		return this.getBounds().contains(e.getPoint());
 +	}
 +}
-diff --git a/pivot-wtk/src/org/apache/pivot/wtk/VFSBrowser.java b/pivot-wtk/src/org/apache/pivot/wtk/VFSBrowser.java
-index d6fc390..1e5055c 100644
---- a/pivot-wtk/src/org/apache/pivot/wtk/VFSBrowser.java
-+++ b/pivot-wtk/src/org/apache/pivot/wtk/VFSBrowser.java
-@@ -149,7 +149,7 @@ public class VFSBrowser extends Container {
-         if (baseFile != null) {
-             baseFileName = baseFile.getName();
-         }
--        rootDirectory = this.manager.resolveFile(rootFolder);
-+        rootDirectory = this.manager.resolveFile("" + rootFolder);
-         if (rootDirectory.getType() != FileType.FOLDER) {
-             throw new IllegalArgumentException();
-         }
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/WindowsTitleBar.java b/pivot-wtk/src/org/apache/pivot/wtk/WindowsTitleBar.java
 new file mode 100644
 index 0000000..368a001
