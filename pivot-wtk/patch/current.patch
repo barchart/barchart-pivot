@@ -115,10 +115,10 @@ index eb23b16..0cabee4 100644
          String osName = System.getProperty("os.name");
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java b/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java
 new file mode 100644
-index 0000000..9b9bd12
+index 0000000..8227245
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java
-@@ -0,0 +1,1148 @@
+@@ -0,0 +1,1156 @@
 +package org.apache.pivot.wtk;
 +
 +import java.awt.BasicStroke;
@@ -194,7 +194,11 @@ index 0000000..9b9bd12
 +		        	break;
 +		        }
 +		        case CUSTOM: {
-+		        	//break;
++		        	frame.setTitleBar(frame.createTitleBar(this));
++		            frame.setBorderDecorated(true, true);
++		            frame.setBorderSize(1);
++		            frame.reshapeBorders();
++		        	break;
 +		        }
 +		        default: {
 +		        	frame.titleBarHeight = DEFAULT_TITLEBAR_HEIGHT;
@@ -387,6 +391,26 @@ index 0000000..9b9bd12
 +     */
 +    public TitleBar getTitleBar() {
 +    	return this.titleBar;
++    }
++    
++    /**
++     * Sets the {@link TitleBar} component.
++     * 
++     * The {@code TitleBar}'s preferred height must be set prior
++     * to calling this method (preferredWidth is irrelevant, i.e.
++     * can be set to zero).
++     * 
++     * @param c		the TitleBar component.
++     */
++    public void setTitleBar(TitleBar c) {
++    	removeTitleBar();
++        this.titleBar = c;
++        titleBarHeight = c.getPreferredSize().height;
++        add(c, BorderLayout.NORTH);
++        invalidate();
++        validate();
++        repaint();
++        titleBar.repaint();
 +    }
 +	
 +	/**
@@ -824,6 +848,10 @@ index 0000000..9b9bd12
 +	    		titleBar.setPreferredSize(new Dimension(0, titleBarHeight));
 +	            break;
 +	    	}
++	    	case CUSTOM: {
++	    		titleBar.setPreferredSize(new Dimension(0, titleBarHeight));
++	            break;
++	    	}
 +	    	default: {
 +	    		titleBar = new DefaultTitleBar();
 +	    		titleBar.setPreferredSize(new Dimension(0, titleBarHeight));
@@ -858,26 +886,6 @@ index 0000000..9b9bd12
 +        	titleBar.setTitle(title);
 +        	titleBar.repaint();
 +        }
-+    }
-+    
-+    /**
-+     * Sets the {@link TitleBar} component.
-+     * 
-+     * The {@code TitleBar}'s preferred height must be set prior
-+     * to calling this method (preferredWidth is irrelevant, i.e.
-+     * can be set to zero).
-+     * 
-+     * @param c		the TitleBar component.
-+     */
-+    public void setTitleBar(TitleBar c) {
-+    	removeTitleBar();
-+        this.titleBar = c;
-+        titleBarHeight = c.getPreferredSize().height;
-+        add(c, BorderLayout.NORTH);
-+        invalidate();
-+        validate();
-+        repaint();
-+        titleBar.repaint();
 +    }
 +    
 +    /**
