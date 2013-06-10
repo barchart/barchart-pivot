@@ -1,0 +1,46 @@
+diff --git a/pivot-wtk-skin-terra/src/org/apache/pivot/wtk/skin/terra/TerraTableViewSkin.java b/pivot-wtk-skin-terra/src/org/apache/pivot/wtk/skin/terra/TerraTableViewSkin.java
+index 1fed7f5..21f52ba 100644
+--- a/pivot-wtk-skin-terra/src/org/apache/pivot/wtk/skin/terra/TerraTableViewSkin.java
++++ b/pivot-wtk-skin-terra/src/org/apache/pivot/wtk/skin/terra/TerraTableViewSkin.java
+@@ -73,8 +73,6 @@ public class TerraTableViewSkin extends ComponentSkin implements TableView.Skin,
+     private Color horizontalGridColor;
+     private Color verticalGridColor;
+     private boolean showHighlight;
+-    private boolean showHorizontalGridLines;
+-    private boolean showVerticalGridLines;
+     private boolean includeTrailingVerticalGridLine;
+     private boolean includeTrailingHorizontalGridLine;
+     private boolean variableRowHeight;
+@@ -87,6 +85,10 @@ public class TerraTableViewSkin extends ComponentSkin implements TableView.Skin,
+ 
+     private int highlightIndex = -1;
+     private int selectIndex = -1;
++    
++    private static boolean showHorizontalGridLines;
++    private static boolean showVerticalGridLines;
++    
+ 
+     private boolean validateSelection = false;
+ 
+@@ -168,7 +170,9 @@ public class TerraTableViewSkin extends ComponentSkin implements TableView.Skin,
+ 
+         // Include space for vertical gridlines; even if we are not painting them,
+         // the header does
+-        preferredWidth += (n - 1);
++        if(showVerticalGridLines) {
++        	preferredWidth += (n - 1);
++        }
+ 
+         if (includeTrailingVerticalGridLine) {
+             preferredWidth++;
+@@ -197,7 +201,9 @@ public class TerraTableViewSkin extends ComponentSkin implements TableView.Skin,
+         }
+ 
+         // Include space for horizontal grid lines
+-        preferredHeight += (n - 1);
++        if(showHorizontalGridLines) {
++        	preferredHeight += (n - 1);
++        }
+ 
+         if (includeTrailingHorizontalGridLine) {
+             preferredHeight++;
