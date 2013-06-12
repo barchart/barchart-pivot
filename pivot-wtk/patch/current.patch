@@ -1,9 +1,9 @@
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/BarChartTitleBar.java b/pivot-wtk/src/org/apache/pivot/wtk/BarChartTitleBar.java
 new file mode 100644
-index 0000000..3ab5993
+index 0000000..e44b617
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/BarChartTitleBar.java
-@@ -0,0 +1,426 @@
+@@ -0,0 +1,443 @@
 +package org.apache.pivot.wtk;
 +
 +import java.awt.BasicStroke;
@@ -14,6 +14,7 @@ index 0000000..3ab5993
 +import java.awt.Graphics;
 +import java.awt.Graphics2D;
 +import java.awt.LinearGradientPaint;
++import java.awt.MouseInfo;
 +import java.awt.Paint;
 +import java.awt.Polygon;
 +import java.awt.Rectangle;
@@ -387,6 +388,22 @@ index 0000000..3ab5993
 +				overClose = false;
 +			}
 +			repaint();
++			
++			(new Thread() {
++				public void run() {
++					try { Thread.sleep(250); }catch(Exception e) {}
++					
++					java.awt.Point p = MouseInfo.getPointerInfo().getLocation();
++					SwingUtilities.convertPointFromScreen(p, BarChartTitleBarControl.this);
++					if(!minus.contains(p) && !plus.contains(p) && !close.contains(p)) {
++						overPlus = false;
++						overMinus = false;
++						overClose = false;
++						System.out.println("clearing control");
++						BarChartTitleBarControl.this.repaint();
++					}
++				}
++			}).start();
 +		}
 +		
 +		@Override
@@ -431,7 +448,7 @@ index 0000000..3ab5993
 +
 +}
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/DesktopApplicationContext.java b/pivot-wtk/src/org/apache/pivot/wtk/DesktopApplicationContext.java
-index eb23b16..38b4e5c 100644
+index eb23b16..1f809ee 100644
 --- a/pivot-wtk/src/org/apache/pivot/wtk/DesktopApplicationContext.java
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/DesktopApplicationContext.java
 @@ -192,6 +192,26 @@ public final class DesktopApplicationContext extends ApplicationContext {
@@ -454,7 +471,7 @@ index eb23b16..38b4e5c 100644
 +    		if(style != null) {
 +    			return new DesktopFrame(DesktopFrame.Style.styleFor("BarChart"));
 +    		}
-+    		return new DesktopFrame();
++    		return new DesktopFrame(DesktopFrame.Style.styleFor("BarChart"));
 +    	}
 +    	return new HostFrame();
 +    }
@@ -547,10 +564,10 @@ index eb23b16..38b4e5c 100644
          String osName = System.getProperty("os.name");
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java b/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java
 new file mode 100644
-index 0000000..a4d0496
+index 0000000..03b2e95
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java
-@@ -0,0 +1,1179 @@
+@@ -0,0 +1,1178 @@
 +package org.apache.pivot.wtk;
 +
 +import java.awt.BasicStroke;
@@ -571,7 +588,6 @@ index 0000000..a4d0496
 +import java.awt.Point;
 +import java.awt.Rectangle;
 +import java.awt.Toolkit;
-+import java.awt.event.ComponentEvent;
 +import java.awt.event.MouseAdapter;
 +import java.awt.event.MouseEvent;
 +import java.awt.event.MouseListener;
@@ -601,7 +617,7 @@ index 0000000..a4d0496
 +		public void apply(DesktopFrame frame) {
 +			frame.configuredStyle = this;
 +			
-+			switch(this) {
++			switch(frame.configuredStyle) {
 +		        case NATIVE_LINUX:
 +		        case NATIVE_WIN: {
 +		        	frame.titleBarHeight = WIN_TITLEBAR_HEIGHT;
@@ -2151,10 +2167,10 @@ index 4c211d2..ad550f4 100644
              this.value = value;
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/SwingContainer.java b/pivot-wtk/src/org/apache/pivot/wtk/SwingContainer.java
 new file mode 100644
-index 0000000..2621ff8
+index 0000000..cfb5f88
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/SwingContainer.java
-@@ -0,0 +1,652 @@
+@@ -0,0 +1,778 @@
 +package org.apache.pivot.wtk;
 +
 +import java.awt.AWTEvent;
@@ -2173,6 +2189,7 @@ index 0000000..2621ff8
 +import java.awt.event.MouseListener;
 +import java.awt.event.WindowEvent;
 +import java.awt.event.WindowStateListener;
++import java.awt.image.BufferedImage;
 +import java.util.ArrayList;
 +import java.util.List;
 +
@@ -2181,6 +2198,7 @@ index 0000000..2621ff8
 +import javax.swing.SwingUtilities;
 +
 +import org.apache.pivot.wtk.DesktopFrame.DragListener;
++import org.apache.pivot.wtk.Window.WindowPopupListener;
 +import org.apache.pivot.wtk.skin.PanelSkin;
 +
 +/**
@@ -2199,8 +2217,8 @@ index 0000000..2621ff8
 + *     |               |                 |       component.
 + *     |               |                 |
 + *     |               |                 |
-+ *    |               |                 |         
-+ *    ----------------|                 |
++ *     |               |                 |         
++ *     ----------------|                 |
 + *       o             |                 |
 + *             o       |                 |
 + *                   o -------------------
@@ -2233,7 +2251,7 @@ index 0000000..2621ff8
 + * @author David Ray
 + * @see org.apache.pivot.wtk.DesktopFrame
 + */
-+public class SwingContainer extends Container {
++public class SwingContainer extends Container implements WindowPopupListener {
 +	private Skin skin;
 +	private Delegate delegate;
 +	Display display;
@@ -2248,31 +2266,58 @@ index 0000000..2621ff8
 +	private AWTEventListener awtListener;
 +
 +	private java.awt.Component occupant;
++	
++	private BufferedImage background;
++	private boolean paintingBackground;
++	
++	private boolean clientSetVisible;
++	
++	private boolean isPopupTransition;
 +
 +	private List<WindowDisposeListener> windowDisposeListeners;
 +
 +	/**
 +	 * Creates a new {@code SwingContainer}
 +	 * 
-+	 * @param parent
-+	 *            the immediate parent container
++	 * @param parent  the immediate parent container
 +	 */
 +	public SwingContainer() {
 +		installSkin(ImageView.class);
-+
++		
 +		// Keeps the delegate window in front.
-+		Toolkit.getDefaultToolkit()
-+				.addAWTEventListener(awtListener = new AWTEventListener() {
-+					@Override
-+					public void eventDispatched(AWTEvent event) {
-+						if (event.getID() == MouseEvent.MOUSE_PRESSED) {
-+							if (delegate != null) {
-+								delegate.toFront();
-+							}
++		Toolkit.getDefaultToolkit().addAWTEventListener(awtListener = new AWTEventListener() {
++			@Override
++			public void eventDispatched(AWTEvent event) {
++				if (event.getID() == MouseEvent.MOUSE_PRESSED) {
++					if (delegate != null) {
++						delegate.toFront();
++					}
++				}else if(event.getID() == MouseEvent.MOUSE_MOVED) {
++					if(!isPopupTransition && occupant != null && occupant.getBounds().width != 0) {
++						Point containerLoc = SwingContainer.this.getLocationOnScreen();
++						Point p = ((MouseEvent)event).getLocationOnScreen();
++						p.x -= (containerLoc.x + 5);
++						p.y -= (containerLoc.y + 5);
++						Rectangle r = occupant.getBounds();
++						if(paintingBackground && r.contains(p)) {
++							paintingBackground = false;
++							delegate.setVisible(true);
 +						}
 +					}
-+				}, AWTEvent.MOUSE_EVENT_MASK | AWTEvent.MOUSE_MOTION_EVENT_MASK);
++				}else if(event.getID() == WindowEvent.WINDOW_CLOSING) {
++					if(((WindowEvent)event).getWindow() == topLevelWindow) {
++						isPopupTransition = true;
++						if(clientSetVisible) {
++							setContentAsBackground();
++						}
++					}
++				}
++			}
++		}, AWTEvent.MOUSE_EVENT_MASK | AWTEvent.MOUSE_MOTION_EVENT_MASK | AWTEvent.WINDOW_EVENT_MASK);
 +
++		// Delegate(java.awt.Window) must be instantiated with the top level window
++		// owner in order to receive focus. Therefore, we must wait until the top
++		// level window becomes available
 +		(new Thread() {
 +			public void run() {
 +				while (getParent() == null
@@ -2286,72 +2331,70 @@ index 0000000..2621ff8
 +
 +				topLevelWindow = display.getHostWindow();
 +
-+				// Delegate(java.awt.Window) must be instantiated with the top
-+				// level window
-+				// owner in order to receive focus. Therefore, we must wait
-+				// until the top
-+				// level window becomes available before instantiating the
-+				// delegate(window).
-+				// In addition all calls to mutate the delegate before it is
-+				// instantiated -
++				// Delegate(java.awt.Window) must be instantiated with the top level window
++				// owner in order to receive focus. Therefore, we must wait until the top
++				// level window becomes available before instantiating the delegate(window).
++				// In addition all calls to mutate the delegate before it is instantiated -
 +				// must also be delayed.
 +				delegate = new Delegate(topLevelWindow);
++				
++				//Notification of tooltip/menu to dismiss SwingContainer so
++                //popup windows aren't covered by the SwingContainer Delegate
++				Window.getWindowPopupListeners().add(SwingContainer.this);
++				
 +				if (occupant != null) {
 +					processComponentAdd(occupant);
-+					occupant = null;
 +				}
 +
-+				getParent().getContainerListeners().add(
-+						createContainerListener());
++				getParent().getContainerListeners().add(createContainerListener());
 +
 +				if (topLevelWindow instanceof DesktopFrame) {
-+					((DesktopFrame) topLevelWindow)
-+							.addDragListener(dragListener = new DragListener() {
-+								public void windowDragged(Point oldLoc,
-+										Point newLoc) {
-+									delegate.setVisible(false);
-+								}
++					((DesktopFrame) topLevelWindow).addDragListener(dragListener = new DragListener() {
++						public void windowDragged(Point oldLoc, Point newLoc) {
++							delegate.setVisible(false);
++						}
 +
-+								public void draggingStopped() {
-+									Point p = getLocationOnScreen();
-+									moveWindow(p.x, p.y);
-+									delegate.setVisible(true);
-+								}
-+							});
-+					((DesktopFrame) topLevelWindow)
-+							.addWindowStateListener(windowStateListener = new WindowStateListener() {
-+								@Override
-+								public void windowStateChanged(WindowEvent e) {
-+									if ((e.getNewState() & JFrame.ICONIFIED) == JFrame.ICONIFIED) {
-+										delegate.setVisible(false);
-+									} else {
-+										delegate.setVisible(false);
-+										(new Thread() {
++						public void draggingStopped() {
++							Point p = getLocationOnScreen();
++							moveWindow(p.x, p.y);
++							if(clientSetVisible) {
++								delegate.setVisible(true);
++							}
++						}
++					});
++					//Sets the Delegate visibility for iconify/deiconify events.
++					((DesktopFrame) topLevelWindow).addWindowStateListener(windowStateListener = new WindowStateListener() {
++						@Override
++						public void windowStateChanged(WindowEvent e) {
++							if ((e.getNewState() & JFrame.ICONIFIED) == JFrame.ICONIFIED) {
++								delegate.setVisible(false);
++							} else {
++								delegate.setVisible(false);
++								(new Thread() {
++									public void run() {
++										try {
++											Thread.sleep(10);
++										} catch (Exception e) {
++											e.printStackTrace();
++										}
++										EventQueue.invokeLater(new Runnable() {
 +											public void run() {
-+												try {
-+													Thread.sleep(10);
-+												} catch (Exception e) {
-+													e.printStackTrace();
++												if(SwingContainer.this.getParent() != null) {
++													SwingContainer.this.getParent().invalidate();
++													SwingContainer.this.getParent().layout();
++													if(clientSetVisible) {
++														delegate.setVisible(true);
++														delegate.toFront();
++													}
 +												}
-+												EventQueue
-+														.invokeLater(new Runnable() {
-+															public void run() {
-+																SwingContainer.this
-+																		.getParent()
-+																		.invalidate();
-+																SwingContainer.this
-+																		.getParent()
-+																		.layout();
-+																delegate.setVisible(true);
-+																delegate.toFront();
-+															}
-+														});
 +											}
-+										}).start();
-+
++										});
 +									}
-+								}
-+							});
++								}).start();
++							}
++						}
++					});
++					
 +					TitleBar tb = ((DesktopFrame) topLevelWindow).getTitleBar();
 +					if (tb != null) {
 +						tb.addIconizeListener(iconizeListener = new TitleBar.IconizeListener() {
@@ -2362,15 +2405,13 @@ index 0000000..2621ff8
 +						});
 +					}
 +				}
-+				topLevelWindow
-+						.addComponentListener(componentAdapter = new ComponentAdapter() {
-+							@Override
-+							public void componentMoved(ComponentEvent e) {
-+								Point p = getLocationOnScreen();
-+								moveWindow(p.x, p.y);
-+							}
-+						});
-+
++				topLevelWindow.addComponentListener(componentAdapter = new ComponentAdapter() {
++					@Override
++					public void componentMoved(ComponentEvent e) {
++						Point p = getLocationOnScreen();
++						moveWindow(p.x, p.y);
++					}
++				});
 +			}
 +		}).start();
 +
@@ -2378,17 +2419,52 @@ index 0000000..2621ff8
 +		// after any
 +		// relocation or resizing is done.
 +		visibilityTimer = new javax.swing.Timer(250,
-+				new java.awt.event.ActionListener() {
-+					public void actionPerformed(java.awt.event.ActionEvent e) {
-+						delegate.setVisible(true);
-+						delegate.requestFocus();
-+					}
-+				});
++			new java.awt.event.ActionListener() {
++				public void actionPerformed(java.awt.event.ActionEvent e) {
++					delegate.setVisible(true);
++					delegate.requestFocus();
++				}
++			});
 +
 +		visibilityTimer.setRepeats(false);
-+
 +	}
-+
++	
++	/**
++	 * Called from {@link Dummy} (in the case of Platform) /
++	 * Externally to resume state when application closing
++	 * is cancelled.
++	 */
++	public void applicationCloseCancelled() {
++		isPopupTransition = false;
++		paintingBackground = false;
++		repaint();
++		delegate.setVisible(true);
++	}
++	
++	/** Implemetation of Window.WindowPopupListener */
++	@Override
++	public void popupOpened(Window popup) {
++		isPopupTransition = true;
++		if(clientSetVisible) {
++			setContentAsBackground();
++		}
++	}
++	
++	/** Implemetation of Window.WindowPopupListener */
++	@Override
++	public void popupClosed(Window popup) {}
++	
++	/** Implemetation of Window.WindowPopupListener */
++	@Override 
++	public void popupEnded(Window popup) {
++		isPopupTransition = false;
++	}
++	
++	/**
++	 * Sets this container visible and delegates to
++	 * the {@link Delegate} to set it visible as
++	 * well.
++	 */
 +	@Override
 +	public void setVisible(boolean b) {
 +		if(delegate == null) {
@@ -2396,6 +2472,58 @@ index 0000000..2621ff8
 +		}else{
 +			delegate.setVisible(b);
 +		}
++	}
++	
++	/**
++	 * Returns a {@link BufferedImage} of the current
++	 * rendered contents.
++	 * 
++	 * @return	a {@link BufferedImage} of the current
++	 * rendered contents.
++	 */
++	public BufferedImage getSnapshot() {
++		return delegate.getSnapshot();
++	}
++	
++	/**
++	 * Triggers the painting of the {@link Delegate}'s 
++	 * contents directly in this {@code SwingContainer} 
++	 * as an image. This is a workaround for allowing 
++	 * popups/menuss in the main window to appear to be
++	 * above the contents of the Delegate. 
++	 */
++	public void setContentAsBackground() {
++		if(!paintingBackground) {
++			background = getSnapshot();
++			paintingBackground = true;
++			(new Thread() {
++				public void run() {
++					try{Thread.sleep(250);}catch(Exception e) {}
++					delegate.setVisible(false);
++				}
++			}).start();
++			repaint();
++		}
++	}
++	
++	/**
++	 * Only called by client code. Used to distinguish between
++	 * internal visibility requests and client visibility requests.
++	 * @param b
++	 */
++	public void clientSetVisible(boolean b) {
++		this.clientSetVisible = b;
++		this.setVisible(b);
++	}
++	
++	/**
++	 * Called externally to retrieve the {@link #clientSetVisible}
++	 * flag indicating that the client is to remain visible/invisible
++	 * despite internal calls to {@link #setVisible(boolean)}
++	 * @return	true if so, false if not
++	 */
++	public boolean isClientSetVisible() {
++		return this.clientSetVisible;
 +	}
 +	
 +	/**
@@ -2476,8 +2604,7 @@ index 0000000..2621ff8
 +	 */
 +	private void fireWindowDisposeEvent() {
 +		if (windowDisposeListeners != null) {
-+			WindowDisposeEvent we = new WindowDisposeEvent(this,
-+					WindowEvent.WINDOW_CLOSING);
++			WindowDisposeEvent we = new WindowDisposeEvent(this, WindowEvent.WINDOW_CLOSING);
 +			for (WindowDisposeListener wse : windowDisposeListeners) {
 +				wse.windowDisposed(we);
 +			}
@@ -2492,8 +2619,7 @@ index 0000000..2621ff8
 +		if (topLevelWindow != null) {
 +			((DesktopFrame) topLevelWindow).removeDragListener(dragListener);
 +			topLevelWindow.removeWindowStateListener(windowStateListener);
-+			((DesktopFrame) topLevelWindow).getTitleBar()
-+					.removeIconizeListener(iconizeListener);
++			((DesktopFrame) topLevelWindow).getTitleBar().removeIconizeListener(iconizeListener);
 +			topLevelWindow.removeComponentListener(componentAdapter);
 +			Toolkit.getDefaultToolkit().removeAWTEventListener(awtListener);
 +		}
@@ -2523,8 +2649,10 @@ index 0000000..2621ff8
 +	 */
 +	public void setSize(int w, int h) {
 +		if (delegate != null) {
-+			visibilityTimer.restart();
-+			delegate.setVisible(false);
++			if(clientSetVisible) {
++				visibilityTimer.restart();
++				delegate.setVisible(false);
++			}
 +		}
 +
 +		super.setSize(w, h);
@@ -2583,6 +2711,7 @@ index 0000000..2621ff8
 +		delegate.add(c);
 +		delegate.setVisible(true);
 +		c.setFocusable(true);
++		occupant = c;
 +	}
 +
 +	/**
@@ -2735,19 +2864,25 @@ index 0000000..2621ff8
 +	}
 +	
 +	public void paint(Graphics2D g) {
-+		super.paint(g);
-+		g.setColor(Color.BLACK);
-+		Rectangle r = g.getClipBounds();
-+		g.fillRect(r.x, r.y, r.width, r.height);
-+		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-+		g.setFont(g.getFont().deriveFont(30f).deriveFont(java.awt.Font.BOLD));
-+		int x = SwingUtilities.computeStringWidth(g.getFontMetrics(), "Loading...");
-+		int y = g.getFontMetrics().getMaxAscent();
++		if(paintingBackground) {
++			g.drawImage(background, 0, 0, null);
++		}else{
++			super.paint(g);
++			
++			g.setColor(Color.BLACK);
++			Rectangle r = g.getClipBounds();
++			g.fillRect(r.x, r.y, r.width, r.height);
++			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
++			g.setFont(g.getFont().deriveFont(30f).deriveFont(java.awt.Font.BOLD));
++			int x = SwingUtilities.computeStringWidth(g.getFontMetrics(), "Loading...");
++			int y = g.getFontMetrics().getMaxAscent();
++			
++			x = (r.width - x) / 2;
++			y = (r.height - y) / 2;
++			g.setColor(Color.WHITE);
++			g.drawString("Loading...", x, y);
++		}
 +		
-+		x = (r.width - x) / 2;
-+		y = (r.height - y) / 2;
-+		g.setColor(Color.WHITE);
-+		g.drawString("Loading...", x, y);
 +	}
 +
 +	/**
@@ -2803,6 +2938,13 @@ index 0000000..2621ff8
 +			if (c == child) {
 +				child = null;
 +			}
++		}
++		
++		public BufferedImage getSnapshot() {
++			BufferedImage img = new BufferedImage(getSize().width, getSize().height, BufferedImage.TYPE_INT_ARGB);
++			Graphics g = img.getGraphics();
++			paint(g);
++			return img;
 +		}
 +	}
 +
@@ -3043,6 +3185,115 @@ index 0000000..bae1038
 +		return this.getBounds().contains(e.getPoint());
 +	}
 +}
+diff --git a/pivot-wtk/src/org/apache/pivot/wtk/Window.java b/pivot-wtk/src/org/apache/pivot/wtk/Window.java
+index 6fbdbfe..72bea59 100644
+--- a/pivot-wtk/src/org/apache/pivot/wtk/Window.java
++++ b/pivot-wtk/src/org/apache/pivot/wtk/Window.java
+@@ -435,6 +435,42 @@ public class Window extends Container {
+             }
+         }
+     }
++    
++    /**
++     * Defines a listener interested in the opening/closing
++     * of "Popup" windows (i.e. menus, tooltips etc.)
++     * 
++     * The {@link Window} in question must have the String
++     * "ID:POPUP" in it's {@link UserDataDictionary} as 
++     * key/value.
++     * @author David Ray
++     */
++    public interface WindowPopupListener {
++    	public void popupOpened(Window popup);
++    	public void popupClosed(Window popup);
++    	public void popupEnded(Window popup);
++    }
++    
++    private static class WindowPopupListenerList extends WTKListenerList<WindowPopupListener> implements WindowPopupListener {
++    	@Override
++    	public void popupOpened(Window popup) {
++    		for(WindowPopupListener l : this) {
++    			l.popupOpened(popup);
++    		}
++    	}
++    	@Override
++    	public void popupClosed(Window popup) {
++    		for(WindowPopupListener l : this) {
++    			l.popupClosed(popup);
++    		}
++    	}
++    	@Override
++    	public void popupEnded(Window popup) {
++    		for(WindowPopupListener l : this) {
++    			l.popupEnded(popup);
++    		}
++    	}
++    }
+ 
+     private Window owner = null;
+     private ArrayList<Window> ownedWindows = new ArrayList<Window>();
+@@ -460,6 +496,7 @@ public class Window extends Container {
+     private WindowActionMappingListenerList windowActionMappingListeners = new WindowActionMappingListenerList();
+ 
+     private static WindowClassListenerList windowClassListeners = new WindowClassListenerList();
++    private static WindowPopupListenerList popupListeners = new WindowPopupListenerList();
+ 
+     private static Window activeWindow = null;
+ 
+@@ -610,7 +647,6 @@ public class Window extends Container {
+         if (ownerArgument == null) {
+             throw new IllegalArgumentException();
+         }
+-
+         open(ownerArgument.getDisplay(), ownerArgument);
+     }
+ 
+@@ -668,7 +704,11 @@ public class Window extends Container {
+                 // Notify listeners
+                 opening = false;
+                 windowStateListeners.windowOpened(this);
+-
++                
++                //Added by BarChart(David Ray): Notification of tooltip/menu to dismiss SwingContainer so
++                //popup windows aren't covered by the SwingContainer Delegate
++                popupListeners.popupOpened(this);
++                
+                 moveToFront();
+             } else {
+                 if (vote == Vote.DENY) {
+@@ -746,6 +786,15 @@ public class Window extends Container {
+                     closing = false;
+ 
+                     windowStateListeners.windowClosed(this, display, ownerLocal);
++                    
++ //                   if(getUserData().get("ID") != null && getUserData().get("ID").equals("POPUP")) {
++                    	popupListeners.popupClosed(this);
++                    	ApplicationContext.scheduleCallback(new Runnable() {
++                    		public void run() {
++                    			popupListeners.popupEnded(Window.this);
++                    		}
++                    	}, 250);
++//                    }
+                 } else {
+                     if (vote == Vote.DENY) {
+                         closing = false;
+@@ -1196,4 +1245,16 @@ public class Window extends Container {
+     public static ListenerList<WindowClassListener> getWindowClassListeners() {
+         return windowClassListeners;
+     }
++    
++    /**
++     * Returns the list of {@link WindowPopupListener}s
++     * The list holds listeners registered to listen to open/close 
++     * events of those {@link Window} classes which have the key "ID",
++     * and the value "POPUP" registered in its {@link UserDataDictionary}
++     * 
++     * @return	the list of {@link WindowPopupListener}s
++     */
++    public static ListenerList<WindowPopupListener> getWindowPopupListeners() {
++    	return popupListeners;
++    }
+ }
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/WindowsTitleBar.java b/pivot-wtk/src/org/apache/pivot/wtk/WindowsTitleBar.java
 new file mode 100644
 index 0000000..368a001
