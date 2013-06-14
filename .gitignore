@@ -8,7 +8,9 @@
 #
 # Pivot source and build folders.
 #
-src/
+# Keep pivot source in the repo.
+#src/
+#
 bin/
 log/
 logs/
