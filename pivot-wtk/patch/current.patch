@@ -1,9 +1,9 @@
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/BarChartTitleBar.java b/pivot-wtk/src/org/apache/pivot/wtk/BarChartTitleBar.java
 new file mode 100644
-index 0000000..c51a984
+index 0000000..84f6393
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/BarChartTitleBar.java
-@@ -0,0 +1,464 @@
+@@ -0,0 +1,466 @@
 +package org.apache.pivot.wtk;
 +
 +import java.awt.BasicStroke;
@@ -260,7 +260,7 @@ index 0000000..c51a984
 +		}
 +		public void paint(Graphics g) {
 +			super.paint(g);
-+			System.out.println("paint debug");
++			System.out.println("paint debug 2");
 +			
 +			Graphics2D g2 = (Graphics2D)g;
 +			Paint oldPaint = g2.getPaint();
@@ -433,6 +433,8 @@ index 0000000..c51a984
 +					hostFrame.setExtendedState(JFrame.NORMAL);
 +					hostFrame.setBordersVisible(true);
 +					hostFrame.setBorderSize(2);
++					hostFrame.invalidate();
++					hostFrame.repaint();
 +				}else{
 +					hostFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
 +					hostFrame.setBordersVisible(false);
@@ -3204,17 +3206,15 @@ index 0000000..5d6a6af
 +}
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/TitleBarControl.java b/pivot-wtk/src/org/apache/pivot/wtk/TitleBarControl.java
 new file mode 100644
-index 0000000..bae1038
+index 0000000..a4b43db
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/TitleBarControl.java
-@@ -0,0 +1,63 @@
+@@ -0,0 +1,61 @@
 +package org.apache.pivot.wtk;
 +
 +import java.awt.event.MouseEvent;
 +import java.awt.event.MouseListener;
 +import java.awt.event.MouseMotionListener;
-+
-+import javax.swing.JComponent;
 +
 +
 +
