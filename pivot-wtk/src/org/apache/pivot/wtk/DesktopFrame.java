@@ -82,9 +82,10 @@ public class DesktopFrame extends DesktopApplicationContext.HostFrame {
 		        	frame.titleBarHeight = WIN_TITLEBAR_HEIGHT;
 		        	frame.setTitleBar(frame.createTitleBar(this));
 		            frame.setBorderDecorated(true, true);
-		            frame.setBorderSize(2);
-		            frame.reshapeBorders();
-		        	break;
+		            //frame.setBorderSize(2);
+		            //frame.reshapeBorders();
+		            frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+		            break;
 		        }
 		        default: {
 		        	frame.titleBarHeight = DEFAULT_TITLEBAR_HEIGHT;
@@ -1021,9 +1022,11 @@ public class DesktopFrame extends DesktopApplicationContext.HostFrame {
     			if((getExtendedState() & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH) {
     				setExtendedState(JFrame.NORMAL);
     				setBorderSize(2);
+    				reshapeBorders();
     			}else{
     				setExtendedState(JFrame.MAXIMIZED_BOTH);
     				setBorderSize(0);
+    				reshapeBorders();
     			}
     		}
     	}

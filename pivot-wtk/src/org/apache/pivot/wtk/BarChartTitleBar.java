@@ -71,10 +71,14 @@ public class BarChartTitleBar extends TitleBar {
 	
 	@Override
 	protected void fillTitleBar(Graphics2D g2) {
+		Rectangle r = g2.getClipBounds();
+		if(r.x > 0) return;
+		
+		System.out.println("fillTitleBar()  " + g2.getClipBounds());
 		Paint oldPaint = g2.getPaint();
         Stroke oldStroke = g2.getStroke();
         
-        Rectangle r = g2.getClipBounds();
+        
         
         g2.setColor(new Color(241,241,241));
         g2.setStroke(new BasicStroke(1));
@@ -158,6 +162,7 @@ public class BarChartTitleBar extends TitleBar {
 		
 		@Override
 		public void paint(Graphics g) {
+			System.out.println("SignatureLogo.paint() " + g.getClipBounds());
 	        super.paint(g);
 	        
 	        Graphics2D g2 = (Graphics2D)g;
@@ -254,7 +259,7 @@ public class BarChartTitleBar extends TitleBar {
 		}
 		public void paint(Graphics g) {
 			//super.paint(g);
-			System.out.println("paint debug 2");
+			System.out.println("BarChartTitleBarControl.paint()  " + g.getClipBounds());
 			
 			Graphics2D g2 = (Graphics2D)g;
 			Paint oldPaint = g2.getPaint();
