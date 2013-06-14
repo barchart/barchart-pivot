@@ -1,9 +1,9 @@
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/BarChartTitleBar.java b/pivot-wtk/src/org/apache/pivot/wtk/BarChartTitleBar.java
 new file mode 100644
-index 0000000..e44b617
+index 0000000..17232ba
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/BarChartTitleBar.java
-@@ -0,0 +1,443 @@
+@@ -0,0 +1,460 @@
 +package org.apache.pivot.wtk;
 +
 +import java.awt.BasicStroke;
@@ -34,7 +34,16 @@ index 0000000..e44b617
 +import javax.swing.SwingUtilities;
 +import javax.swing.Timer;
 +
-+
++/**
++ * Component which represents the styling of the top border of
++ * a given frame. This {@link TitleBar} has the particular styling
++ * for a BarChart custom style. This title bar also defines a
++ * {@link TitleBarControl} which handles the minimize, maximize
++ * and close functions.
++ * 
++ * @author David Ray
++ *
++ */
 +public class BarChartTitleBar extends TitleBar {
 +
 +	private static final long serialVersionUID = 8331424255756031127L;
@@ -230,7 +239,12 @@ index 0000000..e44b617
 +			addMouseListener(this);
 +			addMouseMotionListener(this);
 +		}
++		public void update(Graphics g) {
++			paint(g);
++		}
 +		public void paint(Graphics g) {
++			super.paint(g);
++			
 +			Graphics2D g2 = (Graphics2D)g;
 +			Paint oldPaint = g2.getPaint();
 +			g2.setColor(Color.white);
@@ -399,7 +413,6 @@ index 0000000..e44b617
 +						overPlus = false;
 +						overMinus = false;
 +						overClose = false;
-+						System.out.println("clearing control");
 +						BarChartTitleBarControl.this.repaint();
 +					}
 +				}
@@ -415,6 +428,7 @@ index 0000000..e44b617
 +				if((hostFrame.getExtendedState() & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH) {
 +					hostFrame.setExtendedState(JFrame.NORMAL);
 +					hostFrame.setBordersVisible(true);
++					hostFrame.setBorderSize(2);
 +				}else{
 +					hostFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
 +					hostFrame.setBordersVisible(false);
@@ -439,6 +453,9 @@ index 0000000..e44b617
 +    				SwingUtilities.invokeLater(new Runnable() {
 +    					public void run() {
 +    						hostFrame = (DesktopFrame)SwingUtilities.getAncestorOfClass(DesktopFrame.class, BarChartTitleBar.this);
++    						if((hostFrame.getExtendedState() & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH) { 
++    							hostFrame.setBorderSize(0);
++    						}
 +    					}
 +    				});
 +				}
@@ -564,10 +581,10 @@ index eb23b16..1f809ee 100644
          String osName = System.getProperty("os.name");
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java b/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java
 new file mode 100644
-index 0000000..03b2e95
+index 0000000..1936231
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/DesktopFrame.java
-@@ -0,0 +1,1178 @@
+@@ -0,0 +1,1184 @@
 +package org.apache.pivot.wtk;
 +
 +import java.awt.BasicStroke;
@@ -652,7 +669,7 @@ index 0000000..03b2e95
 +		        	frame.titleBarHeight = WIN_TITLEBAR_HEIGHT;
 +		        	frame.setTitleBar(frame.createTitleBar(this));
 +		            frame.setBorderDecorated(true, true);
-+		            frame.setBorderSize(1);
++		            frame.setBorderSize(2);
 +		            frame.reshapeBorders();
 +		        	break;
 +		        }
@@ -1590,15 +1607,21 @@ index 0000000..03b2e95
 +    		if(e.getClickCount() > 1) {
 +    			if((getExtendedState() & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH) {
 +    				setExtendedState(JFrame.NORMAL);
++    				setBorderSize(2);
 +    			}else{
 +    				setExtendedState(JFrame.MAXIMIZED_BOTH);
++    				setBorderSize(0);
 +    			}
 +    		}
 +    	}
 +    	
 +    	private Rectangle moveRectangle(Rectangle r, int xAmount, int yAmount) {
++    		if((getExtendedState() & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH) {
++    			return r;
++    		}
 +    		Rectangle rect = new Rectangle(r);
 +    		rect.setLocation(rect.x + xAmount, rect.y + yAmount);
++    	
 +    		return rect;
 +    	}
 +    	
@@ -2167,10 +2190,10 @@ index 4c211d2..ad550f4 100644
              this.value = value;
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/SwingContainer.java b/pivot-wtk/src/org/apache/pivot/wtk/SwingContainer.java
 new file mode 100644
-index 0000000..cfb5f88
+index 0000000..beeafe1
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/SwingContainer.java
-@@ -0,0 +1,778 @@
+@@ -0,0 +1,837 @@
 +package org.apache.pivot.wtk;
 +
 +import java.awt.AWTEvent;
@@ -2269,10 +2292,12 @@ index 0000000..cfb5f88
 +	
 +	private BufferedImage background;
 +	private boolean paintingBackground;
-+	
 +	private boolean clientSetVisible;
-+	
 +	private boolean isPopupTransition;
++	private boolean isDragging;
++	private boolean isDialogTransition;
++	
++	private int windowsOpened = 0;
 +
 +	private List<WindowDisposeListener> windowDisposeListeners;
 +
@@ -2293,7 +2318,7 @@ index 0000000..cfb5f88
 +						delegate.toFront();
 +					}
 +				}else if(event.getID() == MouseEvent.MOUSE_MOVED) {
-+					if(!isPopupTransition && occupant != null && occupant.getBounds().width != 0) {
++					if(!isPopupTransition && !isDialogTransition && occupant != null && occupant.getBounds().width != 0) {
 +						Point containerLoc = SwingContainer.this.getLocationOnScreen();
 +						Point p = ((MouseEvent)event).getLocationOnScreen();
 +						p.x -= (containerLoc.x + 5);
@@ -2352,9 +2377,11 @@ index 0000000..cfb5f88
 +					((DesktopFrame) topLevelWindow).addDragListener(dragListener = new DragListener() {
 +						public void windowDragged(Point oldLoc, Point newLoc) {
 +							delegate.setVisible(false);
++							isDragging = true;
 +						}
 +
 +						public void draggingStopped() {
++							isDragging = false;
 +							Point p = getLocationOnScreen();
 +							moveWindow(p.x, p.y);
 +							if(clientSetVisible) {
@@ -2436,9 +2463,12 @@ index 0000000..cfb5f88
 +	 */
 +	public void applicationCloseCancelled() {
 +		isPopupTransition = false;
++		isDialogTransition = false;
 +		paintingBackground = false;
 +		repaint();
-+		delegate.setVisible(true);
++		if(clientSetVisible) {
++			delegate.setVisible(true);
++		}
 +	}
 +	
 +	/** Implemetation of Window.WindowPopupListener */
@@ -2458,6 +2488,37 @@ index 0000000..cfb5f88
 +	@Override 
 +	public void popupEnded(Window popup) {
 +		isPopupTransition = false;
++	}
++	
++	public void dialogOpened() {
++		++windowsOpened;
++		
++		if(!isDialogTransition) {
++			if(clientSetVisible) {
++				setContentAsBackground();
++			}
++		}
++		isDialogTransition = true;
++	}
++	
++	public void dialogClosed() {
++		windowsOpened = Math.max(0, --windowsOpened);
++		if(windowsOpened == 0) {
++			isDialogTransition = false;
++			applicationCloseCancelled();
++		}
++	}
++	
++	public void onAddModeChanged(boolean isAddMode) {
++		if(isAddMode) {
++			Toolkit.getDefaultToolkit().removeAWTEventListener(awtListener);
++			setContentAsBackground();
++		}else{
++			Toolkit.getDefaultToolkit().addAWTEventListener(awtListener,
++				AWTEvent.MOUSE_EVENT_MASK | AWTEvent.MOUSE_MOTION_EVENT_MASK | AWTEvent.WINDOW_EVENT_MASK);
++			paintingBackground = false;
++			setVisible(true);
++		}
 +	}
 +	
 +	/**
@@ -2482,10 +2543,11 @@ index 0000000..cfb5f88
 +	 * rendered contents.
 +	 */
 +	public BufferedImage getSnapshot() {
++		if(delegate == null) return null;
 +		return delegate.getSnapshot();
 +	}
 +	
-+	/**
++	/**x
 +	 * Triggers the painting of the {@link Delegate}'s 
 +	 * contents directly in this {@code SwingContainer} 
 +	 * as an image. This is a workaround for allowing 
@@ -2493,8 +2555,9 @@ index 0000000..cfb5f88
 +	 * above the contents of the Delegate. 
 +	 */
 +	public void setContentAsBackground() {
-+		if(!paintingBackground) {
++		if(!paintingBackground && getSize().width > 0 && getSize().height > 0) {
 +			background = getSnapshot();
++			if(background == null) return; 
 +			paintingBackground = true;
 +			(new Thread() {
 +				public void run() {
@@ -2514,6 +2577,9 @@ index 0000000..cfb5f88
 +	public void clientSetVisible(boolean b) {
 +		this.clientSetVisible = b;
 +		this.setVisible(b);
++		if(b && delegate != null) {
++			delegate.toFront();
++		}
 +	}
 +	
 +	/**
@@ -2648,7 +2714,9 @@ index 0000000..cfb5f88
 +	 *            height
 +	 */
 +	public void setSize(int w, int h) {
-+		if (delegate != null) {
++		if( w <= 1 || h <= 1) return;
++		
++		if (isDragging && delegate != null) {
 +			if(clientSetVisible) {
 +				visibilityTimer.restart();
 +				delegate.setVisible(false);
@@ -2756,7 +2824,11 @@ index 0000000..cfb5f88
 +	 * @param y
 +	 *            the vertical coordinate
 +	 */
++	boolean init = true;
 +	public void moveWindow(int x, int y) {
++		if(init && (x <= 1 && y <= 1)) return;
++		init = false;
++		
 +		if (delegate == null) {
 +			queueMoveWindow(x, y);
 +		} else {
@@ -2829,6 +2901,7 @@ index 0000000..cfb5f88
 +				EventQueue.invokeLater(new Runnable() {
 +					public void run() {
 +						SwingContainer.this.moveWindow(x, y);
++						SwingContainer.this.invalidate();
 +					}
 +				});
 +			}
@@ -2925,6 +2998,7 @@ index 0000000..cfb5f88
 +		@Override
 +		public void setSize(int w, int h) {
 +			super.setSize(w, h);
++			if(child == null) return;
 +			child.setSize(w, h);
 +		}
 +
@@ -2937,6 +3011,14 @@ index 0000000..cfb5f88
 +			super.remove(c);
 +			if (c == child) {
 +				child = null;
++			}
++		}
++		
++		public void setVisible(boolean b) {
++			super.setVisible(b);
++			if(b) {
++				setSize(SwingContainer.this.getSize().width, SwingContainer.this.getSize().height);
++				setLocation(SwingContainer.this.getLocationOnScreen());
 +			}
 +		}
 +		
