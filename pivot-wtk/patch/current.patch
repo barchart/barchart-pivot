@@ -1,6 +1,6 @@
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/BarChartTitleBar.java b/pivot-wtk/src/org/apache/pivot/wtk/BarChartTitleBar.java
 new file mode 100644
-index 0000000..84f6393
+index 0000000..055d712
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/BarChartTitleBar.java
 @@ -0,0 +1,466 @@
@@ -259,7 +259,7 @@ index 0000000..84f6393
 +			paint(g);
 +		}
 +		public void paint(Graphics g) {
-+			super.paint(g);
++			//super.paint(g);
 +			System.out.println("paint debug 2");
 +			
 +			Graphics2D g2 = (Graphics2D)g;
