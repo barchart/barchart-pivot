@@ -1,9 +1,9 @@
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/BarChartTitleBar.java b/pivot-wtk/src/org/apache/pivot/wtk/BarChartTitleBar.java
 new file mode 100644
-index 0000000..cb035ca
+index 0000000..c51a984
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/BarChartTitleBar.java
-@@ -0,0 +1,461 @@
+@@ -0,0 +1,464 @@
 +package org.apache.pivot.wtk;
 +
 +import java.awt.BasicStroke;
@@ -53,6 +53,7 @@ index 0000000..cb035ca
 +	int strLoc = Integer.MIN_VALUE;
 +	int offset = 0;
 +	boolean animating = false;
++	Timer repaintTimer = null;
 +	
 +	private DesktopFrame hostFrame;
 +	
@@ -109,9 +110,24 @@ index 0000000..cb035ca
 +	}
 +	
 +	private TitleBarControl createTitleBarControl() {
-+		BarChartTitleBarControl control = new BarChartTitleBarControl();
++		final BarChartTitleBarControl control = new BarChartTitleBarControl();
 +		control.setPreferredSize(new Dimension(120,20));
 +		control.setControlLocation(TitleBar.Location.RIGHT);
++		
++		repaintTimer = new Timer(250, new java.awt.event.ActionListener() {
++			public void actionPerformed(java.awt.event.ActionEvent e) {
++				java.awt.Point p = MouseInfo.getPointerInfo().getLocation();
++				SwingUtilities.convertPointFromScreen(p, control);
++				if(!minus.contains(p) && !plus.contains(p) && !close.contains(p)) {
++					overPlus = false;
++					overMinus = false;
++					overClose = false;
++					control.repaint();
++				}
++			}
++		});
++		repaintTimer.setRepeats(false);
++		
 +		return control;
 +	}
 +	
@@ -404,20 +420,7 @@ index 0000000..cb035ca
 +			}
 +			repaint();
 +			
-+			(new Thread() {
-+				public void run() {
-+					try { Thread.sleep(250); }catch(Exception e) {}
-+					
-+					java.awt.Point p = MouseInfo.getPointerInfo().getLocation();
-+					SwingUtilities.convertPointFromScreen(p, BarChartTitleBarControl.this);
-+					if(!minus.contains(p) && !plus.contains(p) && !close.contains(p)) {
-+						overPlus = false;
-+						overMinus = false;
-+						overClose = false;
-+						BarChartTitleBarControl.this.repaint();
-+					}
-+				}
-+			}).start();
++			repaintTimer.restart();
 +		}
 +		
 +		@Override
@@ -2191,7 +2194,7 @@ index 4c211d2..ad550f4 100644
              this.value = value;
 diff --git a/pivot-wtk/src/org/apache/pivot/wtk/SwingContainer.java b/pivot-wtk/src/org/apache/pivot/wtk/SwingContainer.java
 new file mode 100644
-index 0000000..beeafe1
+index 0000000..f1a8ea4
 --- /dev/null
 +++ b/pivot-wtk/src/org/apache/pivot/wtk/SwingContainer.java
 @@ -0,0 +1,837 @@
@@ -2510,7 +2513,7 @@ index 0000000..beeafe1
 +		}
 +	}
 +	
-+	public void onAddModeChanged(boolean isAddMode) {
++	public void onAddModeChanged(boolean isAddMode)  {
 +		if(isAddMode) {
 +			Toolkit.getDefaultToolkit().removeAWTEventListener(awtListener);
 +			setContentAsBackground();
