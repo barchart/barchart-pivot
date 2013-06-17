@@ -81,9 +81,12 @@ public class DesktopFrame extends DesktopApplicationContext.HostFrame {
 		        case BARCHART: {
 		        	frame.titleBarHeight = WIN_TITLEBAR_HEIGHT;
 		        	frame.setTitleBar(frame.createTitleBar(this));
+		        	frame.setBorderColor(Color.GRAY);
 		            frame.setBorderDecorated(true, true);
-		            //frame.setBorderSize(2);
-		            //frame.reshapeBorders();
+		            frame.setBorderSize(5);
+		            
+		            frame.installWindowsBorders();
+		            frame.reshapeBorders();
 		            frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
 		            break;
 		        }
@@ -526,11 +529,18 @@ public class DesktopFrame extends DesktopApplicationContext.HostFrame {
         }
     }
     
+    private void paintBorders(Graphics g) {
+    	lBorder.paint(g);
+    	rBorder.paint(g);
+    	bBorder.paint(g);
+    }
+    
+    Panel lBorder,rBorder,bBorder;
     /**
      * Installs default border components.
      */
     private void installDefaultBorders() {
-        Panel lBorder = new Panel();
+        lBorder = new Panel();
         lBorder.setBackground(getBorderColor());
         setLeftBorderComponent(lBorder);
         

@@ -74,7 +74,6 @@ public class BarChartTitleBar extends TitleBar {
 		Rectangle r = g2.getClipBounds();
 		if(r.x > 0) return;
 		
-		System.out.println("fillTitleBar()  " + g2.getClipBounds());
 		Paint oldPaint = g2.getPaint();
         Stroke oldStroke = g2.getStroke();
         
@@ -162,8 +161,7 @@ public class BarChartTitleBar extends TitleBar {
 		
 		@Override
 		public void paint(Graphics g) {
-			System.out.println("SignatureLogo.paint() " + g.getClipBounds());
-	        super.paint(g);
+			super.paint(g);
 	        
 	        Graphics2D g2 = (Graphics2D)g;
 	        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -258,9 +256,6 @@ public class BarChartTitleBar extends TitleBar {
 			paint(g);
 		}
 		public void paint(Graphics g) {
-			//super.paint(g);
-			System.out.println("BarChartTitleBarControl.paint()  " + g.getClipBounds());
-			
 			Graphics2D g2 = (Graphics2D)g;
 			Paint oldPaint = g2.getPaint();
 			g2.setColor(Color.white);
