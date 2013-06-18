@@ -86,7 +86,7 @@ public class DesktopFrame extends DesktopApplicationContext.HostFrame {
 		        case BARCHART: {
 		        	frame.titleBarHeight = WIN_TITLEBAR_HEIGHT;
 		        	frame.setTitleBar(frame.createTitleBar(this));
-		        	frame.setBorderColor(Color.GRAY);
+		        	frame.setBorderColor(new Color(185, 209, 234));
 		            frame.setBorderDecorated(true, true);
 		            frame.setBorderSize(5);
 		            
@@ -1029,7 +1029,7 @@ public class DesktopFrame extends DesktopApplicationContext.HostFrame {
     		if(e.getClickCount() > 1) {
     			if((getExtendedState() & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH) {
     				setExtendedState(JFrame.NORMAL);
-    				setBorderSize(2);
+    				setBorderSize(5);
     				reshapeBorders();
     			}else{
     				setExtendedState(JFrame.MAXIMIZED_BOTH);

@@ -120,8 +120,16 @@ public abstract class TitleBar extends java.awt.Panel implements java.awt.event.
 		return control;
 	}
 	
+	int paintCount = 3;
 	@Override
 	public void paint(Graphics g) {
+		if(paintCount == -1) {
+			paintCount = 3;
+			return;
+		}
+		
+		--paintCount;
+		
         Graphics2D g2 = (Graphics2D)g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         
@@ -137,6 +145,8 @@ public abstract class TitleBar extends java.awt.Panel implements java.awt.event.
         }
         //Paint the child component(TitleBarControl)
         super.paint(g);
+        
+        repaint();
     }
 	
 	@Override

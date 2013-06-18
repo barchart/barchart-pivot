@@ -79,8 +79,6 @@ public class BarChartTitleBar extends TitleBar {
 		Paint oldPaint = g2.getPaint();
         Stroke oldStroke = g2.getStroke();
         
-        
-        
         g2.setColor(new Color(241,241,241));
         g2.setStroke(new BasicStroke(1));
         g2.drawLine(0, 0, getWidth(), 0);
@@ -91,7 +89,6 @@ public class BarChartTitleBar extends TitleBar {
         g2.setPaint(lgp);
         g2.fillRect(0, 0, getWidth(), this.getHeight() - 1);
         g2.setPaint(oldPaint);
-        
         
         g2.setPaint(oldPaint);
         g2.setColor(new Color(104, 104, 104));
@@ -428,7 +425,7 @@ public class BarChartTitleBar extends TitleBar {
 				if((hostFrame.getExtendedState() & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH) {
 					hostFrame.setExtendedState(JFrame.NORMAL);
 					hostFrame.setBordersVisible(true);
-					hostFrame.setBorderSize(2);
+					hostFrame.setBorderSize(5);
 					hostFrame.invalidate();
 					hostFrame.repaint();
 				}else{
