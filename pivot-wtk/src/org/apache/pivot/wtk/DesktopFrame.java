@@ -41,6 +41,11 @@ import javax.swing.SwingUtilities;
  */
 @SuppressWarnings("serial")
 public class DesktopFrame extends DesktopApplicationContext.HostFrame {
+	/**
+	 * Provides a way to specify different title bar and border styles.
+	 * 
+	 * @author David Ray
+	 */
 	public enum Style { 
 		NATIVE_OSX, NATIVE_WIN, NATIVE_LINUX, CUSTOM, DEFAULT, BARCHART;
 		
@@ -529,18 +534,11 @@ public class DesktopFrame extends DesktopApplicationContext.HostFrame {
         }
     }
     
-    private void paintBorders(Graphics g) {
-    	lBorder.paint(g);
-    	rBorder.paint(g);
-    	bBorder.paint(g);
-    }
-    
-    Panel lBorder,rBorder,bBorder;
     /**
      * Installs default border components.
      */
     private void installDefaultBorders() {
-        lBorder = new Panel();
+        Panel lBorder = new Panel();
         lBorder.setBackground(getBorderColor());
         setLeftBorderComponent(lBorder);
         

@@ -49,6 +49,8 @@ public class BarChartTitleBar extends TitleBar {
 	boolean animating = false;
 	Timer repaintTimer = null;
 	
+	int paintCountDown = 3;
+	
 	private DesktopFrame hostFrame;
 	
 	public BarChartTitleBar() {

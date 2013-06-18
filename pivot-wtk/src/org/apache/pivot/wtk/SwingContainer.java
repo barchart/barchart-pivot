@@ -266,6 +266,7 @@ public class SwingContainer extends Container implements WindowPopupListener {
 	 * is cancelled.
 	 */
 	public void applicationCloseCancelled() {
+		System.out.println("applicationCloseCancelled");
 		isPopupTransition = false;
 		isDialogTransition = false;
 		paintingBackground = false;
@@ -278,6 +279,7 @@ public class SwingContainer extends Container implements WindowPopupListener {
 	/** Implemetation of Window.WindowPopupListener */
 	@Override
 	public void popupOpened(Window popup) {
+		System.out.println("popup opened " + popup);
 		isPopupTransition = true;
 		if(clientSetVisible) {
 			setContentAsBackground();
@@ -291,12 +293,14 @@ public class SwingContainer extends Container implements WindowPopupListener {
 	/** Implemetation of Window.WindowPopupListener */
 	@Override 
 	public void popupEnded(Window popup) {
+		System.out.println("popup ended " + popup);
 		isPopupTransition = false;
 	}
 	
 	public void dialogOpened() {
 		++windowsOpened;
-		
+		System.out.println("dialogOpened... "+windowsOpened);
+				
 		if(!isDialogTransition) {
 			if(clientSetVisible) {
 				setContentAsBackground();
@@ -307,6 +311,7 @@ public class SwingContainer extends Container implements WindowPopupListener {
 	
 	public void dialogClosed() {
 		windowsOpened = Math.max(0, --windowsOpened);
+		System.out.println("dialogClosed..."+windowsOpened);
 		if(windowsOpened == 0) {
 			isDialogTransition = false;
 			applicationCloseCancelled();
@@ -314,6 +319,8 @@ public class SwingContainer extends Container implements WindowPopupListener {
 	}
 	
 	public void onAddModeChanged(boolean isAddMode)  {
+		System.out.println("onModeChanged " + isAddMode);
+		
 		if(isAddMode) {
 			Toolkit.getDefaultToolkit().removeAWTEventListener(awtListener);
 			setContentAsBackground();
