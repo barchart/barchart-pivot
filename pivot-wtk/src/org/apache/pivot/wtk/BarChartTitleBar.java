@@ -253,7 +253,53 @@ public class BarChartTitleBar extends TitleBar {
 		public void update(Graphics g) {
 			paint(g);
 		}
+		
 		public void paint(Graphics g) {
+			Graphics2D g2 = (Graphics2D)g.create();
+			g2.setColor(Color.white);
+			Rectangle r = g.getClipBounds();
+			r.height -= 1;
+			r.width -= 1;
+			
+			Rectangle xBox = new Rectangle(r.width - 21, 9, 9, 8);
+			close = xBox;
+			
+			Stroke wide = new BasicStroke(3, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER);
+			g2.setStroke(wide);
+			g2.setColor(Color.LIGHT_GRAY);
+			g2.drawLine(xBox.x - 2, xBox.y - 1, xBox.x + xBox.width, xBox.y + xBox.height + 1);
+			g2.drawLine(xBox.x - 2, xBox.y + xBox.height + 1, xBox.x + xBox.width, xBox.y - 1);
+			
+			Color closeColor = overClose ? Color.white : Color.gray;
+			wide = new BasicStroke(3, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER);
+			g2.setStroke(wide);
+			g2.setColor(closeColor);
+			g2.drawLine(xBox.x - 1, xBox.y, xBox.x + xBox.width + 1, xBox.y + xBox.height + 2);
+			g2.drawLine(xBox.x - 1, xBox.y + xBox.height + 2, xBox.x + xBox.width + 1, xBox.y);
+			close.grow(3, 6);
+			
+			xBox = new Rectangle(r.width - 46, 8, 11, 10);
+			plus = xBox;
+			g2.setColor(Color.LIGHT_GRAY);
+			g2.draw(xBox);
+			xBox = new Rectangle(r.width - 45, 9, 11, 10);
+			closeColor = overPlus ? Color.white : Color.gray;
+			g2.setColor(closeColor);
+			g2.draw(xBox);
+			plus.grow(3, 6);
+			
+			xBox = new Rectangle(r.width - 68, 8, 11, 10);
+			minus = xBox;
+			g2.setColor(Color.LIGHT_GRAY);
+			g2.drawLine(xBox.x, xBox.y + xBox.height, xBox.x + xBox.width, xBox.y + xBox.height);
+			closeColor = overMinus ? Color.white : Color.gray;
+			g2.setColor(closeColor);
+			g2.drawLine(xBox.x + 1, xBox.y + xBox.height + 1, xBox.x + xBox.width + 1, xBox.y + xBox.height + 1);
+			minus.grow(3, 6);
+			
+		}
+		
+		public void paint2(Graphics g) {
 			Graphics2D g2 = (Graphics2D)g.create();
 			g2.setColor(Color.white);
 			Rectangle r = g.getClipBounds();

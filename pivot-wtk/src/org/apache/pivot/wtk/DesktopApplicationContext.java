@@ -206,9 +206,9 @@ public final class DesktopApplicationContext extends ApplicationContext {
     		System.out.println("Running extended capability pivot fork.3");
     		String style = System.getProperty("windowStyle");
     		if(style != null) {
-    			return new DesktopFrame(DesktopFrame.Style.styleFor("NATIVE_WIN"));
+    			return new DesktopFrame(DesktopFrame.Style.styleFor("BARCHART"));
     		}
-    		return new DesktopFrame(DesktopFrame.Style.styleFor("NATIVE_WIN"));
+    		return new DesktopFrame(DesktopFrame.Style.styleFor("BARCHART"));
     	}
     	return new HostFrame();
     }
