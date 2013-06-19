@@ -24,6 +24,7 @@ import javax.swing.JFrame;
 import javax.swing.JWindow;
 import javax.swing.SwingUtilities;
 
+import org.apache.pivot.wtk.DesktopApplicationContext.HostFrame;
 import org.apache.pivot.wtk.DesktopFrame.DragListener;
 import org.apache.pivot.wtk.Window.WindowPopupListener;
 import org.apache.pivot.wtk.skin.PanelSkin;
@@ -166,6 +167,8 @@ public class SwingContainer extends Container implements WindowPopupListener {
 				// In addition all calls to mutate the delegate before it is instantiated -
 				// must also be delayed.
 				delegate = new Delegate(topLevelWindow);
+				
+				SwingContainer.this.clientSetVisible(false);
 				
 				//Notification of tooltip/menu to dismiss SwingContainer so
                 //popup windows aren't covered by the SwingContainer Delegate
@@ -381,8 +384,10 @@ public class SwingContainer extends Container implements WindowPopupListener {
 	public void clientSetVisible(boolean b) {
 		this.clientSetVisible = b;
 		this.setVisible(b);
-		if(b && delegate != null) {
-			delegate.toFront();
+		if(delegate != null) {
+			if(b) {
+				delegate.toFront();
+			}
 		}
 	}
 	
@@ -518,7 +523,9 @@ public class SwingContainer extends Container implements WindowPopupListener {
 	 *            height
 	 */
 	public void setSize(int w, int h) {
-		if( w <= 1 || h <= 1) return;
+		if( w <= 1 || h <= 1) {
+			return;
+		}
 		
 		if (isDragging && delegate != null) {
 			if(clientSetVisible) {
@@ -823,6 +830,12 @@ public class SwingContainer extends Container implements WindowPopupListener {
 			if(b) {
 				setSize(SwingContainer.this.getSize().width, SwingContainer.this.getSize().height);
 				setLocation(SwingContainer.this.getLocationOnScreen());
+			}else{
+				toBack();
+				if(topLevelWindow != null)  {
+					topLevelWindow.requestFocus();
+				}
+					
 			}
 		}
 		

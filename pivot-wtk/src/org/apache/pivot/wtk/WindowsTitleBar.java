@@ -64,7 +64,7 @@ public class WindowsTitleBar extends TitleBar {
 		FontMetrics fm = g2.getFontMetrics();
 		g2.setColor(Color.BLACK);
         Rectangle r = g2.getClipBounds();
-        int textX = 60;
+        int textX = 30;
         int textY = ((r.height) / 2) - ((fm.getAscent() + fm.getDescent()) / 2) + fm.getAscent();
         g2.drawString(title, textX, textY);
     }
