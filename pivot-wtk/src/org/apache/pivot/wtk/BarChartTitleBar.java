@@ -10,7 +10,6 @@ import java.awt.Graphics2D;
 import java.awt.LinearGradientPaint;
 import java.awt.MouseInfo;
 import java.awt.Paint;
-import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Stroke;
@@ -20,8 +19,8 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.WindowEvent;
 import java.awt.geom.Arc2D;
-import java.awt.geom.Area;
 import java.awt.geom.Point2D;
+import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 
 import javax.swing.JFrame;
@@ -64,7 +63,7 @@ public class BarChartTitleBar extends TitleBar {
 		g2.setFont(g2.getFont().deriveFont(Font.BOLD).deriveFont(16f));
 		FontMetrics fm = g2.getFontMetrics();
 		int titleWidth = SwingUtilities.computeStringWidth(fm, title);
-        g2.setColor(Color.WHITE);
+        g2.setColor(Color.WHITE.darker());
         Rectangle r = g2.getClipBounds();
         int textX = (r.width - titleWidth) / 2;
         int textY = ((r.height) / 2) - ((fm.getAscent() + fm.getDescent()) / 2) + fm.getAscent();
@@ -85,7 +84,7 @@ public class BarChartTitleBar extends TitleBar {
         
         LinearGradientPaint lgp = new LinearGradientPaint(
             new Point2D.Double(0,0), new Point2D.Double(0, r.height),
-            	new float[] {0.0f, 1.0f}, new Color[] { new Color(146, 173, 201), new Color(185, 209, 234) });
+            	new float[] {0.0f, 1.0f}, new Color[] { new Color(120, 120, 120), Color.BLACK });
         g2.setPaint(lgp);
         g2.fillRect(0, 0, getWidth(), this.getHeight() - 1);
         g2.setPaint(oldPaint);
@@ -106,7 +105,7 @@ public class BarChartTitleBar extends TitleBar {
 	}
 	
 	private TitleBarControl createTitleBarControl() {
-		final BarChartTitleBarControl control = new BarChartTitleBarControl();
+		final WindowsTitleBarControl control = new WindowsTitleBarControl();
 		control.setPreferredSize(new Dimension(120,20));
 		control.setControlLocation(TitleBar.Location.RIGHT);
 		
@@ -197,7 +196,7 @@ public class BarChartTitleBar extends TitleBar {
 	                
 	        Arc2D rLogo = new Arc2D.Double(lx + 2, 0, 18, 17, 90, -180, Arc2D.OPEN);
 	        g2.fill(rLogo);
-	        g2.setColor(new Color(149, 178, 207));
+	        g2.setColor(Color.BLACK);
 	        g2.fillRect(lx + 10, 10, 4, 2);
 	        
 	        g2.dispose();
@@ -246,8 +245,8 @@ public class BarChartTitleBar extends TitleBar {
 	boolean overPlus = false;
 	boolean overMinus = false;
 	@SuppressWarnings("serial")
-	public class BarChartTitleBarControl extends TitleBarControl {
-		public BarChartTitleBarControl() {
+	public class WindowsTitleBarControl extends TitleBarControl {
+		public WindowsTitleBarControl() {
 			addMouseListener(this);
 			addMouseMotionListener(this);
 		}
@@ -255,139 +254,113 @@ public class BarChartTitleBar extends TitleBar {
 			paint(g);
 		}
 		public void paint(Graphics g) {
-			Graphics2D g2 = (Graphics2D)g;
-			Paint oldPaint = g2.getPaint();
+			Graphics2D g2 = (Graphics2D)g.create();
 			g2.setColor(Color.white);
 			Rectangle r = g.getClipBounds();
 			r.height -= 1;
 			r.width -= 1;
 			
-			Rectangle xBox = new Rectangle(r.width - 43, 6, 31, 16);
+			Rectangle xBox = new Rectangle(r.width - 43, 3, 31, 22);
 			close = xBox;
 			
-			g2.setColor(new Color(253, 228, 223));
-    		Rectangle innerBox = new Rectangle(r.width - 42, 7, 29, 14);
-    		g2.draw(innerBox);//252, 200, 191
-    		LinearGradientPaint topHalfX = new LinearGradientPaint(
-	            new Point2D.Double(r.width - 41, 8), new Point2D.Double(r.width - 41, 15),
-	            	new float[] {0.0f, 1.0f}, new Color[] { new Color(252, 200, 191), new Color(251, 168, 154) });
-    		g2.setPaint(topHalfX);
-    		g2.fill(new Rectangle(r.width - 41, 8, 28, 7));
-    		Color topColor = new Color(180, 63, 44);
-    		Color bottomColor = new Color(210, 126, 111);
+    		Color topColor = new Color(20, 20, 20);
+    		Color bottomColor = new Color(120, 120, 120);
     		if(overClose) {
-    			topColor = new Color(215, 65, 22);
-    			bottomColor = new Color(245, 237, 108);
+    			topColor = new Color(120, 120, 120);
     		}
-    		LinearGradientPaint bottomHalfX = new LinearGradientPaint(
-	            new Point2D.Double(r.width - 41, 14), new Point2D.Double(r.width - 41, 21),
-	            	new float[] {0.0f, 1.0f}, new Color[] { topColor, bottomColor });
-    		g2.setPaint(bottomHalfX);
-    		g2.fill(new Rectangle(r.width - 41, 14, 28, 7));
-    		g2.setPaint(oldPaint);
-			
-			int x = r.width - 98;
-			Area xfig = new Area(new Rectangle(x + 64, 10, 14, 8));
-    		int[] xpoints = new int[]{ x + 64, x + 68, x + 64 };
-    		int[] ypoints = new int[] { 10, 14, 18 };
-    		Polygon p = new Polygon(xpoints, ypoints, 3);
-    		Area leftTri = new Area(p);
-    		xfig.subtract(leftTri);
-    		xpoints = new int[]{ x + 68, x + 71, x + 74 };
-    		ypoints = new int[] { 10, 13, 10 };
-    		p = new Polygon(xpoints, ypoints, 3);
-    		Area topTri = new Area(p);
-    		xfig.subtract(topTri);
-    		xpoints = new int[]{ x + 78, x + 74, x + 78 };
-    		ypoints = new int[] { 10, 14, 18 };
-    		p = new Polygon(xpoints, ypoints, 3);
-    		Area rightTri = new Area(p);
-    		xfig.subtract(rightTri);
-    		xpoints = new int[]{ x + 68, x + 71, x + 74 };
-    		ypoints = new int[] { 18, 15, 18 };
-    		p = new Polygon(xpoints, ypoints, 3);
-    		Area bottomTri = new Area(p);
-    		xfig.subtract(bottomTri);
+			    		
+    		RoundRectangle2D e = new RoundRectangle2D.Double(xBox.x, xBox.y, xBox.width, xBox.height, 10, 10);
+    		LinearGradientPaint topHalfX = new LinearGradientPaint(
+            new Point2D.Double(xBox.x, xBox.y), new Point2D.Double(xBox.x, xBox.y + xBox.height),
+            	new float[] {0.0f, 1.0f}, new Color[] { topColor, bottomColor });
+    		LinearGradientPaint botHalfX = new LinearGradientPaint(
+	            new Point2D.Double(xBox.x, xBox.y), new Point2D.Double(xBox.x, xBox.y + xBox.height),
+	            	new float[] {0.0f, 1.0f}, new Color[] { bottomColor, topColor });
+    		g2.setPaint(topHalfX);
+    		g2.draw(e);
+   		
+    		Stroke wide = new BasicStroke(6, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER);
+    		Stroke thin = new BasicStroke(3, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER);
+    		g2.setStroke(wide);
+    		g2.drawLine(xBox.x + 5, xBox.y + 5, xBox.x + 26, xBox.y + xBox.height - 5);
+    		g2.drawLine(xBox.x + 5, xBox.y + xBox.height - 5, xBox.x + 26, xBox.y + 5);
     		
-    		g2.setColor(Color.WHITE);
-    		g2.fill(xfig);
-    		g2.setColor(Color.BLACK);
-    		g2.draw(xfig);
+    		g2.setStroke(thin);
+    		g2.setPaint(botHalfX);
+    		g2.drawLine(xBox.x + 5, xBox.y + 5, xBox.x + 26, xBox.y + xBox.height - 5);
+    		g2.drawLine(xBox.x + 5, xBox.y + xBox.height - 5, xBox.x + 26, xBox.y + 5);
     		
-    		g2.draw(xBox);
+    		////////////////////
     		
-    		xBox = new Rectangle(r.width - 79, 6, 31, 16);
+    		g2.setStroke(new BasicStroke(1));
+    		topColor = new Color(20, 20, 20);
+    		bottomColor = new Color(120, 120, 120);
+    		if(overPlus) {
+    			topColor = new Color(120, 120, 120);
+    		}
+    		xBox = new Rectangle(r.width - 81, 3, 31, 22);
     		plus = xBox;
-    		innerBox = new Rectangle(r.width - 78, 7, 29, 14);
-    		g2.setColor(new Color(223, 232, 242));
-    		g2.draw(innerBox);
-    		topColor = new Color(195, 212, 231);
-    		bottomColor = new Color(190, 211, 232);
-    		if(overPlus) {
-    			topColor = new Color(170, 213, 243);
-    			bottomColor = new Color(129, 192, 234);
-    		}
+    		e = new RoundRectangle2D.Double(xBox.x, xBox.y, xBox.width, xBox.height, 10, 10);
     		topHalfX = new LinearGradientPaint(
-	            new Point2D.Double(r.width - 77, 8), new Point2D.Double(r.width - 77, 15),
-	            	new float[] {0.0f, 1.0f}, new Color[] { topColor,  bottomColor});
+            new Point2D.Double(xBox.x, xBox.y), new Point2D.Double(xBox.x, xBox.y + xBox.height),
+            	new float[] {0.0f, 1.0f}, new Color[] { topColor, bottomColor });
+    		botHalfX = new LinearGradientPaint(
+	            new Point2D.Double(xBox.x, xBox.y), new Point2D.Double(xBox.x, xBox.y + xBox.height),
+	            	new float[] {0.0f, 1.0f}, new Color[] { bottomColor, topColor });
     		g2.setPaint(topHalfX);
-    		g2.fill(new Rectangle(r.width - 77, 8, 28, 7));
-    		topColor = new Color(152, 177, 204);
-    		bottomColor = new Color(183, 208, 233);
-    		if(overPlus) {
-    			topColor = new Color(45, 115, 163);
-    			bottomColor = new Color(133, 239, 249);
-    		}
-    		bottomHalfX = new LinearGradientPaint(
-	            new Point2D.Double(r.width - 77, 14), new Point2D.Double(r.width - 77, 21),
-	            	new float[] {0.0f, 1.0f}, new Color[] { topColor, bottomColor });
-    		g2.setPaint(bottomHalfX);
-    		g2.fill(new Rectangle(r.width - 77, 14, 28, 7));
-    		g2.setColor(Color.WHITE);
-    		g2.setStroke(new BasicStroke(2));
-    		g2.drawRect(r.width - 69, 11, 12, 6);
-    		g2.setStroke(new BasicStroke(1));
-    		g2.setColor(Color.DARK_GRAY);
-    		g2.drawRect(r.width - 70, 10, 14, 8);
-    		g2.drawRect(r.width - 67, 13, 8, 2);
-    		g2.setColor(Color.BLACK);
-    		g2.draw(xBox);
+    		g2.draw(e);
     		
-    		xBox = new Rectangle(r.width - 115, 6, 31, 16);
-    		minus = xBox;
-    		innerBox = new Rectangle(r.width - 114, 7, 29, 14);
-    		topColor = new Color(195, 212, 231);
-    		bottomColor = new Color(190, 211, 232);
-    		if(overMinus) {
-    			topColor = new Color(170, 213, 243);
-    			bottomColor = new Color(129, 192, 234);
-    		}
     		topHalfX = new LinearGradientPaint(
-	            new Point2D.Double(r.width - 113, 8), new Point2D.Double(r.width - 113, 15),
-	            	new float[] {0.0f, 1.0f}, new Color[] { topColor, bottomColor });
+    			new Point2D.Double(xBox.x, xBox.y + 5), new Point2D.Double(xBox.x, xBox.y + xBox.height - 5),
+    				new float[] {0.0f, 1.0f}, new Color[] { topColor, bottomColor });
+    		botHalfX = new LinearGradientPaint(
+	            new Point2D.Double(xBox.x, xBox.y), new Point2D.Double(xBox.x, xBox.y + xBox.height),
+	            	new float[] {0.0f, 1.0f}, new Color[] { bottomColor, topColor });
     		g2.setPaint(topHalfX);
-    		g2.fill(new Rectangle(r.width - 113, 8, 28, 7));
-    		topColor = new Color(152, 177, 204);
-    		bottomColor = new Color(183, 208, 233);
-    		if(overMinus) {
-    			topColor = new Color(45, 115, 163);
-    			bottomColor = new Color(133, 239, 249);
-    		}
-    		bottomHalfX = new LinearGradientPaint(
-	            new Point2D.Double(r.width - 113, 14), new Point2D.Double(r.width - 113, 21),
-	            	new float[] {0.0f, 1.0f}, new Color[] { topColor, bottomColor });
-    		g2.setPaint(bottomHalfX);
-    		g2.fill(new Rectangle(r.width - 113, 14, 28, 7));
-    		g2.setColor(new Color(223, 232, 242));
-    		g2.draw(innerBox);
-    		g2.setColor(Color.WHITE);
-    		g2.setStroke(new BasicStroke(2));
-    		g2.drawRect(r.width - 105, 13, 12, 2);
+    		g2.setStroke(wide);
+    		g2.drawLine(xBox.x + 5, xBox.y + xBox.height / 2, xBox.x + 26, xBox.y + xBox.height / 2);
+    		g2.drawLine(xBox.x + 1 + xBox.width / 2, xBox.y + 5, xBox.x + 1 + xBox.width / 2, xBox.y + xBox.height - 5);
+    		
+//    		g2.setColor(topColor);
+    		g2.setStroke(thin);
+    		g2.setPaint(botHalfX);
+    		g2.drawLine(xBox.x + 5, xBox.y + xBox.height / 2, xBox.x + 26, xBox.y + xBox.height / 2);
+    		g2.drawLine(xBox.x + 1 + xBox.width / 2, xBox.y + 5, xBox.x + 1 + xBox.width / 2, xBox.y + xBox.height - 5);
+    		
+    		////////////////////
+    		
     		g2.setStroke(new BasicStroke(1));
-    		g2.setColor(Color.DARK_GRAY);
-    		g2.drawRect(r.width - 106, 12, 14, 4);
-    		g2.setColor(Color.BLACK);
-    		g2.draw(xBox);
+    		topColor = new Color(20, 20, 20);
+    		bottomColor = new Color(120, 120, 120);
+    		if(overMinus) {
+    			topColor = new Color(120, 120, 120);
+    		}
+    		xBox = new Rectangle(r.width - 119, 3, 31, 22);
+    		minus = xBox;
+    		e = new RoundRectangle2D.Double(xBox.x, xBox.y, xBox.width, xBox.height, 10, 10);
+    		topHalfX = new LinearGradientPaint(
+    			new Point2D.Double(xBox.x, xBox.y), new Point2D.Double(xBox.x, xBox.y + xBox.height),
+        			new float[] {0.0f, 1.0f}, new Color[] { topColor, bottomColor });
+        	botHalfX = new LinearGradientPaint(
+            new Point2D.Double(xBox.x, xBox.y), new Point2D.Double(xBox.x, xBox.y + xBox.height),
+            	new float[] {0.0f, 1.0f}, new Color[] { bottomColor, topColor });
+    	    		g2.draw(e);
+    	    g2.setPaint(topHalfX);
+    		g2.draw(e);
+    		
+    		topHalfX = new LinearGradientPaint(
+    			new Point2D.Double(xBox.x, xBox.y + (xBox.height / 2) - 3), new Point2D.Double(xBox.x, (xBox.y + xBox.height / 2) + 3),
+    				new float[] {0.0f, 1.0f}, new Color[] { topColor, bottomColor });
+    		botHalfX = new LinearGradientPaint(
+    			new Point2D.Double(xBox.x, (xBox.y + xBox.height / 2) - 3), new Point2D.Double(xBox.x, (xBox.y + xBox.height / 2) + 3),
+	            	new float[] {0.0f, 1.0f}, new Color[] { bottomColor, topColor });
+    		g2.setStroke(wide);
+    		g2.drawLine(xBox.x + 5, xBox.y + xBox.height / 2, xBox.x + 26, xBox.y + xBox.height / 2);
+    		
+    		g2.setStroke(thin);
+    		g2.setPaint(botHalfX);
+    		g2.drawLine(xBox.x + 5, xBox.y + xBox.height / 2, xBox.x + 26, xBox.y + xBox.height / 2);
+    		
     		
 		}
 		

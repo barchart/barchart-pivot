@@ -55,18 +55,17 @@ public class DesktopFrame extends DesktopApplicationContext.HostFrame {
 			switch(frame.configuredStyle) {
 		        case NATIVE_LINUX:
 		        case NATIVE_WIN: {
+		        	System.out.println("creating native win title bar");
 		        	frame.titleBarHeight = WIN_TITLEBAR_HEIGHT;
 		        	frame.setTitleBar(frame.createTitleBar(this));
-		        	
-		        	frame.setBorderColor(Color.GRAY);
+		        	frame.setBorderColor(new Color(185, 209, 234));
 		            frame.setBorderDecorated(true, true);
 		            frame.setBorderSize(5);
 		            
 		            frame.installWindowsBorders();
-		            
-		        	frame.reshapeBorders();
-		        	frame.mainContentPanel.invalidate();
-		        	break;
+		            frame.reshapeBorders();
+		            frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+		            break;
 		        }
 		        case NATIVE_OSX: {
 		        	frame.titleBarHeight = OSX_TITLEBAR_HEIGHT;
