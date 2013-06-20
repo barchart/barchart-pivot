@@ -264,25 +264,27 @@ public class BarChartTitleBar extends TitleBar {
 			Rectangle xBox = new Rectangle(r.width - 21, 9, 9, 8);
 			close = xBox;
 			
+			Color highlight = Color.BLACK;//new Color(100, 100, 100);
+			
 			Stroke wide = new BasicStroke(3, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER);
 			g2.setStroke(wide);
-			g2.setColor(Color.LIGHT_GRAY);
-			g2.drawLine(xBox.x - 2, xBox.y - 1, xBox.x + xBox.width, xBox.y + xBox.height + 1);
-			g2.drawLine(xBox.x - 2, xBox.y + xBox.height + 1, xBox.x + xBox.width, xBox.y - 1);
+			g2.setColor(highlight);
+			g2.drawLine(xBox.x - 1, xBox.y, xBox.x + xBox.width + 1, xBox.y + xBox.height + 2);
+			g2.drawLine(xBox.x - 1, xBox.y + xBox.height + 2, xBox.x + xBox.width + 1, xBox.y);
 			
 			Color closeColor = overClose ? Color.white : Color.gray;
 			wide = new BasicStroke(3, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER);
 			g2.setStroke(wide);
 			g2.setColor(closeColor);
-			g2.drawLine(xBox.x - 1, xBox.y, xBox.x + xBox.width + 1, xBox.y + xBox.height + 2);
-			g2.drawLine(xBox.x - 1, xBox.y + xBox.height + 2, xBox.x + xBox.width + 1, xBox.y);
+			g2.drawLine(xBox.x - 2, xBox.y - 1, xBox.x + xBox.width, xBox.y + xBox.height + 1);
+			g2.drawLine(xBox.x - 2, xBox.y + xBox.height + 1, xBox.x + xBox.width, xBox.y - 1);
 			close.grow(3, 6);
 			
-			xBox = new Rectangle(r.width - 46, 8, 11, 10);
-			plus = xBox;
-			g2.setColor(Color.LIGHT_GRAY);
-			g2.draw(xBox);
 			xBox = new Rectangle(r.width - 45, 9, 11, 10);
+			plus = xBox;
+			g2.setColor(highlight);
+			g2.draw(xBox);
+			xBox = new Rectangle(r.width - 46, 8, 11, 10);
 			closeColor = overPlus ? Color.white : Color.gray;
 			g2.setColor(closeColor);
 			g2.draw(xBox);
@@ -290,11 +292,11 @@ public class BarChartTitleBar extends TitleBar {
 			
 			xBox = new Rectangle(r.width - 68, 8, 11, 10);
 			minus = xBox;
-			g2.setColor(Color.LIGHT_GRAY);
-			g2.drawLine(xBox.x, xBox.y + xBox.height, xBox.x + xBox.width, xBox.y + xBox.height);
+			g2.setColor(highlight);
+			g2.drawLine(xBox.x + 1, xBox.y + xBox.height + 1, xBox.x + xBox.width + 1, xBox.y + xBox.height + 1);
 			closeColor = overMinus ? Color.white : Color.gray;
 			g2.setColor(closeColor);
-			g2.drawLine(xBox.x + 1, xBox.y + xBox.height + 1, xBox.x + xBox.width + 1, xBox.y + xBox.height + 1);
+			g2.drawLine(xBox.x, xBox.y + xBox.height, xBox.x + xBox.width, xBox.y + xBox.height);
 			minus.grow(3, 6);
 			
 		}
