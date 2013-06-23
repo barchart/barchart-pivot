@@ -485,6 +485,8 @@ public final class DesktopApplicationContext extends ApplicationContext {
             System.err.println("Application class name is required.");
             return;
         }
+		
+		Container.setEventDispatchThreadChecker(null);
 
         applicationClassName = args[0];
 
