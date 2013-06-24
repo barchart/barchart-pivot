@@ -146,7 +146,11 @@ public abstract class TitleBar extends java.awt.Panel implements java.awt.event.
         //Paint the child component(TitleBarControl)
         super.paint(g);
         
-        repaint();
+        //Associated with paintCount above. Don't repaint the Title
+        //Bar control bounds because it causes flicker (i.e. x > 0)
+        if(g.getClipBounds().x == 0) {
+        	repaint();	
+        }
     }
 	
 	@Override
