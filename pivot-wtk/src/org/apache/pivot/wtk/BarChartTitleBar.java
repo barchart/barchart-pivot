@@ -337,12 +337,14 @@ public class BarChartTitleBar extends TitleBar {
 					hostFrame.setExtendedState(JFrame.NORMAL);
 					hostFrame.setBordersVisible(true);
 					hostFrame.setBorderSize(5);
+					hostFrame.setResizable(true);
 					hostFrame.invalidate();
 					hostFrame.repaint();
 				}else{
 					hostFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
 					hostFrame.setBordersVisible(false);
 					hostFrame.setBorderSize(0);
+					hostFrame.setResizable(false);
 					hostFrame.invalidate();
 					hostFrame.repaint();
 				}

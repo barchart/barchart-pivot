@@ -7,6 +7,7 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.EventQueue;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -49,13 +50,12 @@ public class DesktopFrame extends DesktopApplicationContext.HostFrame {
 	public enum Style { 
 		NATIVE_OSX, NATIVE_WIN, NATIVE_LINUX, CUSTOM, DEFAULT, BARCHART;
 		
-		public void apply(DesktopFrame frame) {
+		public void apply(final DesktopFrame frame) {
 			frame.configuredStyle = this;
 			
 			switch(frame.configuredStyle) {
 		        case NATIVE_LINUX:
 		        case NATIVE_WIN: {
-		        	System.out.println("creating native win title bar");
 		        	frame.titleBarHeight = WIN_TITLEBAR_HEIGHT;
 		        	frame.setTitleBar(frame.createTitleBar(this));
 		        	frame.setBorderColor(new Color(185, 209, 234));
@@ -85,13 +85,17 @@ public class DesktopFrame extends DesktopApplicationContext.HostFrame {
 		        case BARCHART: {
 		        	frame.titleBarHeight = WIN_TITLEBAR_HEIGHT;
 		        	frame.setTitleBar(frame.createTitleBar(this));
-		        	frame.setBorderColor(new Color(185, 209, 234));
+		        	frame.setBorderColor(new Color(50, 50, 50));
 		            frame.setBorderDecorated(true, true);
 		            frame.setBorderSize(5);
 		            
 		            frame.installWindowsBorders();
 		            frame.reshapeBorders();
 		            frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+		            EventQueue.invokeLater(new Runnable() {
+		            	public void run() { frame.setResizable(false); }
+		            });
+		            
 		            break;
 		        }
 		        default: {
@@ -169,7 +173,7 @@ public class DesktopFrame extends DesktopApplicationContext.HostFrame {
     private List<Rectangle> virtualDeviceBounds;
     /** The shape of the virtual screens */
     private Area virtualArea;
-    
+    private  boolean resizeable = true;
 	
 	public DesktopFrame() {
 		this(NATIVE_STYLE_OVERRIDE ? Style.CUSTOM : getNativeStyle());
@@ -224,6 +228,25 @@ public class DesktopFrame extends DesktopApplicationContext.HostFrame {
 			p.y = Math.min((int)r.getMaxY(), p.y);
     	}
     	return p;
+    }
+    
+    /**
+     * Sets the resizable flag
+     * 
+     * @param b	true if so, false if not
+     */
+    @Override
+    public void setResizable(boolean b) {
+    	this.resizeable = b;
+    }
+    
+    /**
+     * Overridden because the parent class can get
+     * out of sync if resizable is issued too early.
+     */
+    @Override
+    public boolean isResizable() {
+    	return this.resizeable;
     }
     
     /**
@@ -952,6 +975,7 @@ public class DesktopFrame extends DesktopApplicationContext.HostFrame {
         
         @Override
         public void mouseMoved(MouseEvent m) {
+           if(!isResizable()) return;
 	       Side side = Side.sideFor(getBounds(), m.getLocationOnScreen(), resizeMargin);
 	       setCursorForSide(side);
 	    }
@@ -1029,10 +1053,12 @@ public class DesktopFrame extends DesktopApplicationContext.HostFrame {
     			if((getExtendedState() & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH) {
     				setExtendedState(JFrame.NORMAL);
     				setBorderSize(5);
+    				setResizable(true);
     				reshapeBorders();
     			}else{
     				setExtendedState(JFrame.MAXIMIZED_BOTH);
     				setBorderSize(0);
+    				setResizable(false);
     				reshapeBorders();
     			}
     		}
@@ -1049,6 +1075,8 @@ public class DesktopFrame extends DesktopApplicationContext.HostFrame {
     	}
     	
     	private Rectangle resizeRectangle(Rectangle r, Side side, int deltaX, int deltaY) {
+    		if(!isResizable()) return r;
+    		
     		Rectangle rect = new Rectangle(r);
     		if(side.vertical() != 0 || side.horizontal() != 0) {
     			if(side.vertical() == -1) {
@@ -1063,6 +1091,8 @@ public class DesktopFrame extends DesktopApplicationContext.HostFrame {
     				resizeRightTo(rect, (int)r.getMaxX() + deltaX);
     			}
     		}
+    		rect.height = Math.max(titleBarHeight, rect.height);
+    		rect.width = Math.max(320, rect.width);
     		return rect;
     	}
     	
