@@ -168,7 +168,9 @@ public class SwingContainer extends Container implements WindowPopupListener {
 				// must also be delayed.
 				delegate = new Delegate(topLevelWindow);
 				
-				SwingContainer.this.clientSetVisible(false);
+				if(!SwingContainer.this.clientSetVisible) {
+					SwingContainer.this.clientSetVisible(false);
+				}
 				
 				//Notification of tooltip/menu to dismiss SwingContainer so
                 //popup windows aren't covered by the SwingContainer Delegate
