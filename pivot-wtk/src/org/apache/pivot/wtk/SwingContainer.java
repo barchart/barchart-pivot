@@ -24,7 +24,6 @@ import javax.swing.JFrame;
 import javax.swing.JWindow;
 import javax.swing.SwingUtilities;
 
-import org.apache.pivot.wtk.DesktopApplicationContext.HostFrame;
 import org.apache.pivot.wtk.DesktopFrame.DragListener;
 import org.apache.pivot.wtk.Window.WindowPopupListener;
 import org.apache.pivot.wtk.skin.PanelSkin;
@@ -118,11 +117,7 @@ public class SwingContainer extends Container implements WindowPopupListener {
 		Toolkit.getDefaultToolkit().addAWTEventListener(awtListener = new AWTEventListener() {
 			@Override
 			public void eventDispatched(AWTEvent event) {
-				if (event.getID() == MouseEvent.MOUSE_PRESSED) {
-					if (delegate != null) {
-						delegate.toFront();
-					}
-				}else if(event.getID() == MouseEvent.MOUSE_MOVED) {
+				 if(event.getID() == MouseEvent.MOUSE_MOVED) {
 					if(!isPopupTransition && !isDialogTransition && occupant != null && occupant.getBounds().width != 0) {
 						Point containerLoc = SwingContainer.this.getLocationOnScreen();
 						Point p = ((MouseEvent)event).getLocationOnScreen();
@@ -132,6 +127,8 @@ public class SwingContainer extends Container implements WindowPopupListener {
 						if(paintingBackground && r.contains(p)) {
 							paintingBackground = false;
 							delegate.setVisible(true);
+							
+							System.out.println("sdfasdfsadfsad");
 						}
 					}
 				}else if(event.getID() == WindowEvent.WINDOW_CLOSING) {
