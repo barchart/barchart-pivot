@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com.barchart.pivot</groupId>
 		<artifactId>barchart-pivot</artifactId>
-		<version>2.0.2-build041-SNAPSHOT</version>
+		<version>2.0.2-build042-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>pivot-wtk-skin-terra</artifactId>
