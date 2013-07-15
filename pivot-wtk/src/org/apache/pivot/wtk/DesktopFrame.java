@@ -194,6 +194,8 @@ public class DesktopFrame extends DesktopApplicationContext.HostFrame {
 		
 		//Collect the current monitor configuration boundaries.
         getEnvironmentInfo(); 
+        
+        setBounds(GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds());
 	}
 	
 	@Override
@@ -342,7 +344,7 @@ public class DesktopFrame extends DesktopApplicationContext.HostFrame {
     	Rectangle win = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
     	if((paramInt & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH) {
     		isFakeMaximized = true;
-			
+			System.out.println("setting fake max with height: " + win.height);
     		setBounds(b.x, b.y, b.width, win.height);
     		setBordersVisible(false);
 			setBorderSize(0);
@@ -1057,7 +1059,6 @@ public class DesktopFrame extends DesktopApplicationContext.HostFrame {
     	}
     	
     	public void mouseDragged(MouseEvent m) {
-    		System.out.println("testing isfakemax " + isFakeMaximized);
     		if(isFakeMaximized) return;
     		
     		Point p = MouseInfo.getPointerInfo().getLocation();
