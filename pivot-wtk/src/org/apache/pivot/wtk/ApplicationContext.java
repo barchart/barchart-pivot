@@ -344,8 +344,8 @@ public abstract class ApplicationContext {
             }
 
             // Add native drop support
-            @SuppressWarnings("unused")
-            java.awt.dnd.DropTarget dropTarget = new java.awt.dnd.DropTarget(this, dropTargetListener);
+            //@SuppressWarnings("unused")
+            //java.awt.dnd.DropTarget dropTarget = new java.awt.dnd.DropTarget(this, dropTargetListener);
 
             setFocusTraversalKeysEnabled(false);
         }

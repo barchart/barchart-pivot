@@ -20,7 +20,6 @@ import java.awt.event.MouseMotionListener;
 import java.awt.event.WindowEvent;
 import java.awt.geom.Arc2D;
 import java.awt.geom.Point2D;
-import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 
 import javax.swing.JFrame;
@@ -60,7 +59,7 @@ public class BarChartTitleBar extends TitleBar {
 
 	@Override
 	protected void paintTitle(Graphics2D g2) {
-		g2.setFont(g2.getFont().deriveFont(Font.BOLD).deriveFont(16f));
+		g2.setFont(g2.getFont().deriveFont(Font.BOLD).deriveFont(14f));
 		FontMetrics fm = g2.getFontMetrics();
 		int titleWidth = SwingUtilities.computeStringWidth(fm, title);
         g2.setColor(Color.WHITE.darker());
@@ -165,7 +164,7 @@ public class BarChartTitleBar extends TitleBar {
 	        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 	        
 	        int x = 5;
-	        int y = 6;
+	        int y = 2;
 	        int imgCenterX = x + this.logo.getWidth() / 2;
 	        int imgCenterY = y + this.logo.getHeight() / 2 - 2;
 	        g2.translate(imgCenterX, imgCenterY);
@@ -262,7 +261,7 @@ public class BarChartTitleBar extends TitleBar {
 			r.height -= 1;
 			r.width -= 1;
 			
-			Rectangle xBox = new Rectangle(r.width - 21, 9, 9, 8);
+			Rectangle xBox = new Rectangle(r.width - 19, 7, 7, 8);
 			close = xBox;
 			
 			Color highlight = Color.BLACK;//new Color(100, 100, 100);
@@ -281,23 +280,23 @@ public class BarChartTitleBar extends TitleBar {
 			g2.drawLine(xBox.x - 2, xBox.y + xBox.height + 1, xBox.x + xBox.width, xBox.y - 1);
 			close.grow(3, 6);
 			
-			xBox = new Rectangle(r.width - 45, 9, 11, 10);
+			xBox = new Rectangle(r.width - 38, 7, 9, 10);
 			plus = xBox;
 			g2.setColor(highlight);
 			g2.draw(xBox);
-			xBox = new Rectangle(r.width - 46, 8, 11, 10);
+			xBox = new Rectangle(r.width - 40, 6, 9, 10);
 			closeColor = overPlus ? Color.white : Color.gray;
 			g2.setColor(closeColor);
 			g2.draw(xBox);
 			plus.grow(3, 6);
 			
-			xBox = new Rectangle(r.width - 68, 8, 11, 10);
+			xBox = new Rectangle(r.width - 60, 6, 9, 10);
 			minus = xBox;
 			g2.setColor(highlight);
-			g2.drawLine(xBox.x + 1, xBox.y + xBox.height + 1, xBox.x + xBox.width + 1, xBox.y + xBox.height + 1);
+			g2.drawLine(xBox.x + 4, xBox.y + xBox.height + 1, xBox.x + xBox.width + 1, xBox.y + xBox.height + 1);
 			closeColor = overMinus ? Color.white : Color.gray;
 			g2.setColor(closeColor);
-			g2.drawLine(xBox.x, xBox.y + xBox.height, xBox.x + xBox.width, xBox.y + xBox.height);
+			g2.drawLine(xBox.x + 2, xBox.y + xBox.height, xBox.x + xBox.width, xBox.y + xBox.height);
 			minus.grow(3, 6);
 			
 		}

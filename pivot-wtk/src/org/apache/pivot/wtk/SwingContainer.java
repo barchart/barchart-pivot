@@ -127,8 +127,6 @@ public class SwingContainer extends Container implements WindowPopupListener {
 						if(paintingBackground && r.contains(p)) {
 							paintingBackground = false;
 							delegate.setVisible(true);
-							
-							System.out.println("sdfasdfsadfsad");
 						}
 					}
 				}else if(event.getID() == WindowEvent.WINDOW_CLOSING) {

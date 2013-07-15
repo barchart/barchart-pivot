@@ -83,7 +83,7 @@ public class DesktopFrame extends DesktopApplicationContext.HostFrame {
 		        	break;
 		        }
 		        case BARCHART: {
-		        	frame.titleBarHeight = WIN_TITLEBAR_HEIGHT;
+		        	frame.titleBarHeight = BARCHART_TITLEBAR_HEIGHT;
 		        	frame.setTitleBar(frame.createTitleBar(this));
 		        	frame.setBorderColor(new Color(50, 50, 50));
 		            frame.setBorderDecorated(true, true);
@@ -136,6 +136,7 @@ public class DesktopFrame extends DesktopApplicationContext.HostFrame {
 			return null;
 		}
 	};
+	private static final int BARCHART_TITLEBAR_HEIGHT = 23;
 	private static final int OSX_TITLEBAR_HEIGHT = 22;
 	private static final int WIN_TITLEBAR_HEIGHT = 30;
 	private static final int DEFAULT_TITLEBAR_HEIGHT = 25;
