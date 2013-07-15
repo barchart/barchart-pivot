@@ -332,7 +332,8 @@ public class BarChartTitleBar extends TitleBar {
 				fireFrameWillBecomeIconized();
 				hostFrame.setExtendedState(JFrame.ICONIFIED);
 			}else if(plus.contains(e.getPoint())) {
-				if((hostFrame.getExtendedState() & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH) {
+				if((hostFrame.getExtendedState() & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH ||
+					hostFrame.isFakeMaximized()) {
 					hostFrame.setExtendedState(JFrame.NORMAL);
 					hostFrame.setBordersVisible(true);
 					hostFrame.setBorderSize(5);

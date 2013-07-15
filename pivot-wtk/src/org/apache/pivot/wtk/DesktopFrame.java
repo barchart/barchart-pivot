@@ -142,6 +142,8 @@ public class DesktopFrame extends DesktopApplicationContext.HostFrame {
 	private static final int DEFAULT_TITLEBAR_HEIGHT = 25;
 	private static boolean NATIVE_STYLE_OVERRIDE;
 	
+	private boolean isFakeMaximized;
+	
 	/** The size in pixels of the border */
     private int borderSize = 1;
     /** The thickness over which a cursor change will be triggered for resizing */
@@ -332,8 +334,39 @@ public class DesktopFrame extends DesktopApplicationContext.HostFrame {
         repaint();
         titleBar.repaint();
     }
-	
-	/**
+    
+    public void setExtendedState(int paramInt) {
+    	super.setExtendedState(paramInt);
+    	
+    	Rectangle b = getBounds();
+    	Rectangle win = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
+    	if((paramInt & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH) {
+    		isFakeMaximized = true;
+			
+    		setBounds(b.x, b.y, b.width, win.height);
+    		setBordersVisible(false);
+			setBorderSize(0);
+			setResizable(false);
+			invalidate();
+			repaint();
+		}else{
+			int w = (int)((double)b.width * .70d);
+			int h = (int)((double)b.height * .70d);
+			setBounds(win.width / 2 - w / 2, win.height / 2 - h / 2, w, h);
+    		isFakeMaximized = false;
+    		setBordersVisible(true);
+			setBorderSize(5);
+			setResizable(true);
+			invalidate();
+			repaint();
+    	}
+    }
+    
+    public boolean isFakeMaximized() {
+    	return isFakeMaximized;
+    }
+    
+    /**
      * Called by the SwingContainer class to determine the location
      * to set on the delegate Window.
      * @return
@@ -976,7 +1009,7 @@ public class DesktopFrame extends DesktopApplicationContext.HostFrame {
         
         @Override
         public void mouseMoved(MouseEvent m) {
-           if(!isResizable()) return;
+           if(!isResizable() || isFakeMaximized) return;
 	       Side side = Side.sideFor(getBounds(), m.getLocationOnScreen(), resizeMargin);
 	       setCursorForSide(side);
 	    }
@@ -988,6 +1021,7 @@ public class DesktopFrame extends DesktopApplicationContext.HostFrame {
         }
         @Override
         public void mousePressed(MouseEvent m) {
+        	if(isFakeMaximized) return;
             isPressed = true;
             Side side = Side.sideFor(getBounds(), m.getLocationOnScreen(), resizeMargin);
             setCursorForSide(side);
@@ -1023,6 +1057,9 @@ public class DesktopFrame extends DesktopApplicationContext.HostFrame {
     	}
     	
     	public void mouseDragged(MouseEvent m) {
+    		System.out.println("testing isfakemax " + isFakeMaximized);
+    		if(isFakeMaximized) return;
+    		
     		Point p = MouseInfo.getPointerInfo().getLocation();
     		
     		int xAmount = (p.x - startPoint.x);
@@ -1051,7 +1088,8 @@ public class DesktopFrame extends DesktopApplicationContext.HostFrame {
     	
     	public void mouseClicked(MouseEvent e) {
     		if(e.getClickCount() > 1) {
-    			if((getExtendedState() & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH) {
+    			if((getExtendedState() & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH ||
+    				isFakeMaximized) {
     				setExtendedState(JFrame.NORMAL);
     				setBorderSize(5);
     				setResizable(true);
