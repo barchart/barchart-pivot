@@ -127,7 +127,7 @@ public class BarChartTitleBar extends TitleBar {
 	
 	private SignatureLogo createSignatureLogo() {
 		SignatureLogo logo = new SignatureLogo();
-		logo.setPreferredSize(new Dimension(60,20));
+		logo.setPreferredSize(new Dimension(50,10));
 		return logo;
 	}
 	
@@ -164,7 +164,7 @@ public class BarChartTitleBar extends TitleBar {
 	        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 	        
 	        int x = 5;
-	        int y = 2;
+	        int y = 3;
 	        int imgCenterX = x + this.logo.getWidth() / 2;
 	        int imgCenterY = y + this.logo.getHeight() / 2 - 2;
 	        g2.translate(imgCenterX, imgCenterY);
@@ -179,24 +179,24 @@ public class BarChartTitleBar extends TitleBar {
 		}
 		
 		private BufferedImage createLogo(Color bg, Color fg) {
-			BufferedImage img = new BufferedImage(20, 20, BufferedImage.TYPE_INT_ARGB);
+			BufferedImage img = new BufferedImage(17, 16, BufferedImage.TYPE_INT_ARGB);
 			Graphics2D g2 = (Graphics2D)img.getGraphics();
 			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 			
 			int lx = 0;
 			g2.setColor(bg);
-	        Arc2D lLogo = new Arc2D.Double(lx, 0, 16, 16, 90, 180, Arc2D.OPEN);
+	        Arc2D lLogo = new Arc2D.Double(lx, 0, 14, 14, 90, 180, Arc2D.OPEN);
 	        g2.draw(lLogo);
-	        g2.drawLine(lx + 8, 0, lx + 8, 4);
-	        g2.drawLine(lx + 8, 4, lx + 4, 4);
-	        g2.drawLine(lx + 4, 4, lx + 4, 6);
-	        g2.drawLine(lx + 4, 6, lx + 8, 6);
-	        g2.drawLine(lx + 8, 6, lx + 8, 15);
+	        g2.drawLine(lx + 7, 0, lx + 7, 3);
+	        g2.drawLine(lx + 7, 3, lx + 4, 3);
+	        g2.drawLine(lx + 4, 3, lx + 4, 5);
+	        g2.drawLine(lx + 4, 5, lx + 7, 5);
+	        g2.drawLine(lx + 7, 5, lx + 7, 14);
 	                
-	        Arc2D rLogo = new Arc2D.Double(lx + 2, 0, 18, 17, 90, -180, Arc2D.OPEN);
+	        Arc2D rLogo = new Arc2D.Double(lx + 2, 0, 15, 15, 90, -180, Arc2D.OPEN);
 	        g2.fill(rLogo);
 	        g2.setColor(Color.BLACK);
-	        g2.fillRect(lx + 10, 10, 4, 2);
+	        g2.fillRect(lx + 9, 10, 4, 2);
 	        
 	        g2.dispose();
 	        return img;
