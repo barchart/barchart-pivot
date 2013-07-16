@@ -1769,6 +1769,7 @@ public abstract class ApplicationContext {
             try {
                 timer.schedule(scheduledCallback, delay);
             } catch (IllegalStateException exception) {
+            	exception.printStackTrace();
                 createTimer();
                 timer.schedule(scheduledCallback, delay);
             }
