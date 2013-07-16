@@ -489,10 +489,14 @@ public class SwingContainer extends Container implements WindowPopupListener {
 	 */
 	public void removeListeners() {
 		if (topLevelWindow != null) {
-			((DesktopFrame) topLevelWindow).removeDragListener(dragListener);
+			if(topLevelWindow instanceof DesktopFrame){
+				((DesktopFrame) topLevelWindow).removeDragListener(dragListener);
+				((DesktopFrame) topLevelWindow).getTitleBar().removeIconizeListener(iconizeListener);
+			}
+			
 			topLevelWindow.removeWindowStateListener(windowStateListener);
-			((DesktopFrame) topLevelWindow).getTitleBar().removeIconizeListener(iconizeListener);
 			topLevelWindow.removeComponentListener(componentAdapter);
+			
 			Toolkit.getDefaultToolkit().removeAWTEventListener(awtListener);
 		}
 	}
