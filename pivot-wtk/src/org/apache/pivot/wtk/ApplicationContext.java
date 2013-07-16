@@ -344,8 +344,9 @@ public abstract class ApplicationContext {
             }
 
             // Add native drop support
-            //@SuppressWarnings("unused")
-            //java.awt.dnd.DropTarget dropTarget = new java.awt.dnd.DropTarget(this, dropTargetListener);
+            // we need this for DND
+            @SuppressWarnings("unused")
+            java.awt.dnd.DropTarget dropTarget = new java.awt.dnd.DropTarget(this, dropTargetListener);
 
             setFocusTraversalKeysEnabled(false);
         }
@@ -1769,6 +1770,7 @@ public abstract class ApplicationContext {
             try {
                 timer.schedule(scheduledCallback, delay);
             } catch (IllegalStateException exception) {
+            	exception.printStackTrace();
                 createTimer();
                 timer.schedule(scheduledCallback, delay);
             }
@@ -1814,6 +1816,7 @@ public abstract class ApplicationContext {
             try {
                 timer.schedule(scheduledCallback, delay, period);
             } catch (IllegalStateException exception) {
+            	exception.printStackTrace();
                 createTimer();
                 timer.schedule(scheduledCallback, delay, period);
             }

@@ -91,10 +91,10 @@ public class DesktopFrame extends DesktopApplicationContext.HostFrame {
 		            
 		            frame.installWindowsBorders();
 		            frame.reshapeBorders();
-		            frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-		            EventQueue.invokeLater(new Runnable() {
-		            	public void run() { frame.setResizable(false); }
-		            });
+		            //frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+		            //EventQueue.invokeLater(new Runnable() {
+		            //	public void run() { frame.setResizable(false); }
+		            //});
 		            
 		            break;
 		        }
@@ -195,7 +195,7 @@ public class DesktopFrame extends DesktopApplicationContext.HostFrame {
 		//Collect the current monitor configuration boundaries.
         getEnvironmentInfo(); 
         
-        setBounds(GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds());
+        //setBounds(GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds());
 	}
 	
 	@Override

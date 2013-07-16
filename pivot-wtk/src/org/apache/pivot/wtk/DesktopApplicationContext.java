@@ -20,6 +20,7 @@ import java.awt.AWTEvent;
 import java.awt.Graphics;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.awt.Rectangle;
 import java.awt.SplashScreen;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyAdapter;
@@ -235,6 +236,8 @@ public final class DesktopApplicationContext extends ApplicationContext {
 
             // Clear the background
             setBackground(null);
+            
+            super.setMaximizedBounds(GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds());
         }
 
         @Override
