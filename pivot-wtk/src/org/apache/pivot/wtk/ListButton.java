@@ -558,7 +558,7 @@ public class ListButton extends Button {
 
 		int previousSelectedIndex = this.selectedIndex;
 
-		if (previousSelectedIndex != selectedIndex && !fireOnAll) {
+		if (fireOnAll) {
 			this.selectedIndex = selectedIndex;
 			listButtonSelectionListeners.selectedIndexChanged(this,
 					previousSelectedIndex);
@@ -566,6 +566,16 @@ public class ListButton extends Button {
 					this,
 					(previousSelectedIndex == -1) ? null : listData
 							.get(previousSelectedIndex));
+		} else {
+			if (previousSelectedIndex != selectedIndex) {
+				this.selectedIndex = selectedIndex;
+				listButtonSelectionListeners.selectedIndexChanged(this,
+						previousSelectedIndex);
+				listButtonSelectionListeners.selectedItemChanged(
+						this,
+						(previousSelectedIndex == -1) ? null : listData
+								.get(previousSelectedIndex));
+			}
 		}
 	}
 
