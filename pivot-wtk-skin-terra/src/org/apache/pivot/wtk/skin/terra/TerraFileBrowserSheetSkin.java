@@ -126,6 +126,10 @@ public class TerraFileBrowserSheetSkin extends TerraSheetSkin implements
 					public Vote previewInsertText(TextInput textInput,
 							CharSequence text, int index) {
 
+						if(text.toString().equals("-") || text.toString().equals("_")){
+							return Vote.APPROVE;
+						}
+						
 						if (!text.toString().matches("[^a-zA-Z0-9 ]")) {
 							return Vote.APPROVE;
 						}
