@@ -119,14 +119,16 @@ public class SwingContainer extends Container implements WindowPopupListener {
 			public void eventDispatched(AWTEvent event) {
 				 if(event.getID() == MouseEvent.MOUSE_MOVED) {
 					if(!isPopupTransition && !isDialogTransition && occupant != null && occupant.getBounds().width != 0) {
-						Point containerLoc = SwingContainer.this.getLocationOnScreen();
-						Point p = ((MouseEvent)event).getLocationOnScreen();
-						p.x -= (containerLoc.x + 5);
-						p.y -= (containerLoc.y + 5);
-						Rectangle r = occupant.getBounds();
-						if(paintingBackground && r.contains(p)) {
-							paintingBackground = false;
-							delegate.setVisible(true);
+						if(clientSetVisible) {
+							Point containerLoc = SwingContainer.this.getLocationOnScreen();
+							Point p = ((MouseEvent)event).getLocationOnScreen();
+							p.x -= (containerLoc.x + 5);
+							p.y -= (containerLoc.y + 5);
+							Rectangle r = occupant.getBounds();
+							if(paintingBackground && r.contains(p)) {
+								paintingBackground = false;
+								delegate.setVisible(true);
+							}
 						}
 					}
 				}else if(event.getID() == WindowEvent.WINDOW_CLOSING) {
