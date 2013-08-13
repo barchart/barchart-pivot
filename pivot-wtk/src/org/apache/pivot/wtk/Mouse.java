@@ -273,7 +273,7 @@ public final class Mouse {
      */
     public static void setCursor(final Component component) {
         if (component == null) {
-            throw new IllegalArgumentException("component is null.");
+            return;
         }
 
         if (!component.isVisible()) {
