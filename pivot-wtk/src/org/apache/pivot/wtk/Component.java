@@ -2780,7 +2780,13 @@ public abstract class Component implements ConstrainedVisual {
 
 		Display display = getDisplay();
 		Point location = display.getMouseLocation();
-		// location = mapPointFromAncestor(display, x, y);
+
+		if (location == null) {
+			System.err
+					.println("reenterMouseFull, display.getMouseLocation() is null ");
+			return;
+		}
+
 		mouseMove(location.x, location.y);
 
 	}
