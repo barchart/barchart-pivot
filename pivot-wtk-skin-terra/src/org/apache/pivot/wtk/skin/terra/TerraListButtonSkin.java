@@ -615,11 +615,6 @@ public class TerraListButtonSkin extends ListButtonSkin {
 		repaintComponent();
 	}
 
-	public void setBorderThickness(int thickness) {
-		listViewBorder.getStyles().put("thickness", thickness);
-		repaintComponent();
-	}
-
 	public final void setBorderColor(String borderColor) {
 		if (borderColor == null) {
 			throw new IllegalArgumentException("borderColor is null.");
@@ -814,10 +809,8 @@ public class TerraListButtonSkin extends ListButtonSkin {
 		if (listButton.isRepeatable()) {
 			repaintComponent();
 		}
-		
 
 		System.out.println("SDAfsadfsadf!!");
-		
 
 		return consumed;
 	}
