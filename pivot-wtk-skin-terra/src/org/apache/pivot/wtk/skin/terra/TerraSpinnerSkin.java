@@ -310,7 +310,7 @@ public class TerraSpinnerSkin extends ContainerSkin implements Spinner.Skin,
         public boolean keyTyped(Component component, char character) {
             boolean consumed = super.keyTyped(component, character);
 
-            Spinner spinner = (Spinner)TerraSpinnerSkin.this.getComponent();
+          /*  Spinner spinner = (Spinner)TerraSpinnerSkin.this.getComponent();
             List<?> spinnerData = spinner.getSpinnerData();
             Spinner.ItemRenderer itemRenderer = spinner.getItemRenderer();
 
@@ -329,7 +329,7 @@ public class TerraSpinnerSkin extends ContainerSkin implements Spinner.Skin,
                         break;
                     }
                 }
-            }
+            }*/
 
             return consumed;
         }
