@@ -126,10 +126,10 @@ public class Version implements Comparable<Version>, Serializable {
     public static Version decode(String string) {
         Version version = null;
 
-        byte majorRevision = 0;
-        byte minorRevision = 0;
-        byte maintenanceRevision = 0;
-        byte updateRevision = 0;
+        int majorRevision = 0;
+        int minorRevision = 0;
+        int maintenanceRevision = 0;
+        int updateRevision = 0;
         String build = null;
 
         String revision;
@@ -144,19 +144,19 @@ public class Version implements Comparable<Version>, Serializable {
         String[] revisionNumbers = revision.split("\\.");
 
         if (revisionNumbers.length > 0) {
-            majorRevision = Byte.parseByte(revisionNumbers[0]);
+            majorRevision = Integer.parseInt(revisionNumbers[0]);
 
             if (revisionNumbers.length > 1) {
-                minorRevision = Byte.parseByte(revisionNumbers[1]);
+                minorRevision = Integer.parseInt(revisionNumbers[1]);
 
                 if (revisionNumbers.length > 2) {
                     String[] maintenanceRevisionNumbers = revisionNumbers[2].split("_");
 
                     if (maintenanceRevisionNumbers.length > 0) {
-                        maintenanceRevision = Byte.parseByte(maintenanceRevisionNumbers[0]);
+                        maintenanceRevision = Integer.parseInt(maintenanceRevisionNumbers[0]);
 
                         if (maintenanceRevisionNumbers.length > 1) {
-                            updateRevision = Byte.parseByte(maintenanceRevisionNumbers[1]);
+                            updateRevision = Integer.parseInt(maintenanceRevisionNumbers[1]);
                         }
                     }
                 }
