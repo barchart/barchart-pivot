@@ -810,8 +810,6 @@ public class TerraListButtonSkin extends ListButtonSkin {
 			repaintComponent();
 		}
 
-		System.out.println("SDAfsadfsadf!!");
-
 		return consumed;
 	}
 }

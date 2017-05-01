@@ -124,7 +124,7 @@ public class Label extends Component {
      */
     public void setText(String text) {
         if (text == null) {
-            throw new IllegalArgumentException();
+        	text = "";
         }
 
         if (text.length() > maximumLength) {
