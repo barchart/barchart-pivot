@@ -134,7 +134,7 @@ public class Version implements Comparable<Version>, Serializable {
 			String[] revisionNumbers = revision.split("\\.");
 
 			if (revisionNumbers.length > 0) {
-				majorRevision = Integer.parseInt(revisionNumbers[0].replaceAll("+", "").replaceAll("-", ""));
+				majorRevision = Integer.parseInt(revisionNumbers[0].replaceAll("\\+", "").replaceAll("\\-", ""));
 
 				if (revisionNumbers.length > 1) {
 					minorRevision = Integer.parseInt(revisionNumbers[1]);
@@ -156,7 +156,7 @@ public class Version implements Comparable<Version>, Serializable {
 			}
 
 			return version;
-		} catch (NumberFormatException e) {
+		} catch (Exception e) {
 			System.err.println("Warning: failed to parse Java version number.");
 			e.printStackTrace();
 
