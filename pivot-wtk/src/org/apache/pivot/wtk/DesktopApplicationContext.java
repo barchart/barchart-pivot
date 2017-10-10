@@ -710,8 +710,15 @@ public final class DesktopApplicationContext extends ApplicationContext {
 	 * @return flag indicating whether the java version is >= 1.7
 	 */
 	private static boolean isRunningVersion7OrGreater() {
-		String version = System.getProperty("java.version");
-		return Integer.parseInt(version.split("\\.")[1]) >= 7;
+		try {
+			String version = System.getProperty("java.version");
+			return Integer.parseInt(version.split("\\.")[1]) >= 7;
+		} catch (Exception e) {
+			// Using JRE version 9+181 Java HotSpot(TM) 64-Bit Server VM
+			System.err.println("Oracle is just wonderful");
+			e.printStackTrace();
+		}
+		return true;
 	}
 
 	/**
