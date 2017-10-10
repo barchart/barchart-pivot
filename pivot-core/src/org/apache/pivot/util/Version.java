@@ -28,10 +28,10 @@ import java.io.Serializable;
 public class Version implements Comparable<Version>, Serializable {
 	private static final long serialVersionUID = -3677773163272115116L;
 
-	private byte majorRevision = 0;
-	private byte minorRevision = 0;
-	private byte maintenanceRevision = 0;
-	private byte updateRevision = 0;
+	private int majorRevision = 0;
+	private int minorRevision = 0;
+	private int maintenanceRevision = 0;
+	private int updateRevision = 0;
 	private String build = null;
 
 	public Version(int majorRevision, int minorRevision, int maintenanceRevision, int updateRevision) {
@@ -39,42 +39,27 @@ public class Version implements Comparable<Version>, Serializable {
 	}
 
 	public Version(int majorRevision, int minorRevision, int maintenanceRevision, int updateRevision, String build) {
-		if (majorRevision > 0x7f) {
-			throw new IllegalArgumentException("majorRevision must be less than " + 0x7f + ".");
-		}
 
-		if (minorRevision > 0xff) {
-			throw new IllegalArgumentException("minorRevision must be less than " + 0xff + ".");
-		}
-
-		if (maintenanceRevision > 0xff) {
-			throw new IllegalArgumentException("maintenanceRevision must be less than " + 0xff + ".");
-		}
-
-		if (updateRevision > 0xff) {
-			throw new IllegalArgumentException("updateRevision must be less than " + 0xff + ".");
-		}
-
-		this.majorRevision = (byte) majorRevision;
-		this.minorRevision = (byte) minorRevision;
-		this.maintenanceRevision = (byte) maintenanceRevision;
-		this.updateRevision = (byte) updateRevision;
+		this.majorRevision = majorRevision;
+		this.minorRevision = minorRevision;
+		this.maintenanceRevision = maintenanceRevision;
+		this.updateRevision = updateRevision;
 		this.build = build;
 	}
 
-	public byte getMajorRevision() {
+	public int getMajorRevision() {
 		return this.majorRevision;
 	}
 
-	public byte getMinorRevision() {
+	public int getMinorRevision() {
 		return this.minorRevision;
 	}
 
-	public byte getMaintenanceRevision() {
+	public int getMaintenanceRevision() {
 		return this.maintenanceRevision;
 	}
 
-	public byte getUpdateRevision() {
+	public int getUpdateRevision() {
 		return this.updateRevision;
 	}
 
