@@ -26,146 +26,141 @@ import java.io.Serializable;
  * for example, "JDK 1.6.0_10".
  */
 public class Version implements Comparable<Version>, Serializable {
-    private static final long serialVersionUID = -3677773163272115116L;
+	private static final long serialVersionUID = -3677773163272115116L;
 
-    private byte majorRevision = 0;
-    private byte minorRevision = 0;
-    private byte maintenanceRevision = 0;
-    private byte updateRevision = 0;
-    private String build = null;
+	private byte majorRevision = 0;
+	private byte minorRevision = 0;
+	private byte maintenanceRevision = 0;
+	private byte updateRevision = 0;
+	private String build = null;
 
-    public Version(int majorRevision, int minorRevision, int maintenanceRevision,
-        int updateRevision) {
-        this(majorRevision, minorRevision, maintenanceRevision, updateRevision, null);
-    }
+	public Version(int majorRevision, int minorRevision, int maintenanceRevision, int updateRevision) {
+		this(majorRevision, minorRevision, maintenanceRevision, updateRevision, null);
+	}
 
-    public Version(int majorRevision, int minorRevision, int maintenanceRevision,
-        int updateRevision, String build) {
-        if (majorRevision > 0x7f) {
-            throw new IllegalArgumentException("majorRevision must be less than "
-                + 0x7f + ".");
-        }
+	public Version(int majorRevision, int minorRevision, int maintenanceRevision, int updateRevision, String build) {
+		if (majorRevision > 0x7f) {
+			throw new IllegalArgumentException("majorRevision must be less than " + 0x7f + ".");
+		}
 
-        if (minorRevision > 0xff) {
-            throw new IllegalArgumentException("minorRevision must be less than "
-                + 0xff + ".");
-        }
+		if (minorRevision > 0xff) {
+			throw new IllegalArgumentException("minorRevision must be less than " + 0xff + ".");
+		}
 
-        if (maintenanceRevision > 0xff) {
-            throw new IllegalArgumentException("maintenanceRevision must be less than "
-                + 0xff + ".");
-        }
+		if (maintenanceRevision > 0xff) {
+			throw new IllegalArgumentException("maintenanceRevision must be less than " + 0xff + ".");
+		}
 
-        if (updateRevision > 0xff) {
-            throw new IllegalArgumentException("updateRevision must be less than "
-                + 0xff + ".");
-        }
+		if (updateRevision > 0xff) {
+			throw new IllegalArgumentException("updateRevision must be less than " + 0xff + ".");
+		}
 
-        this.majorRevision = (byte)majorRevision;
-        this.minorRevision = (byte)minorRevision;
-        this.maintenanceRevision = (byte)maintenanceRevision;
-        this.updateRevision = (byte)updateRevision;
-        this.build = build;
-    }
+		this.majorRevision = (byte) majorRevision;
+		this.minorRevision = (byte) minorRevision;
+		this.maintenanceRevision = (byte) maintenanceRevision;
+		this.updateRevision = (byte) updateRevision;
+		this.build = build;
+	}
 
-    public byte getMajorRevision() {
-        return this.majorRevision;
-    }
+	public byte getMajorRevision() {
+		return this.majorRevision;
+	}
 
-    public byte getMinorRevision() {
-        return this.minorRevision;
-    }
+	public byte getMinorRevision() {
+		return this.minorRevision;
+	}
 
-    public byte getMaintenanceRevision() {
-        return this.maintenanceRevision;
-    }
+	public byte getMaintenanceRevision() {
+		return this.maintenanceRevision;
+	}
 
-    public byte getUpdateRevision() {
-        return this.updateRevision;
-    }
+	public byte getUpdateRevision() {
+		return this.updateRevision;
+	}
 
-    public int getNumber() {
-        int number = ((this.majorRevision) & 0xff) << (8 * 3)
-            | ((this.minorRevision) & 0xff) << (8 * 2)
-            | ((this.maintenanceRevision) & 0xff) << (8 * 1)
-            | ((this.updateRevision) & 0xff) << (8 * 0);
+	public int getNumber() {
+		int number = ((this.majorRevision) & 0xff) << (8 * 3) | ((this.minorRevision) & 0xff) << (8 * 2)
+				| ((this.maintenanceRevision) & 0xff) << (8 * 1) | ((this.updateRevision) & 0xff) << (8 * 0);
 
-        return number;
-    }
+		return number;
+	}
 
-    @Override
-    public int compareTo(Version version) {
-        return (getNumber() - version.getNumber());
-    }
+	@Override
+	public int compareTo(Version version) {
+		return (getNumber() - version.getNumber());
+	}
 
-    @Override
-    public boolean equals(Object object) {
-        return (object instanceof Version
-            && compareTo((Version)object) == 0);
-    }
+	@Override
+	public boolean equals(Object object) {
+		return (object instanceof Version && compareTo((Version) object) == 0);
+	}
 
-    @Override
-    public int hashCode() {
-        return getNumber();
-    }
+	@Override
+	public int hashCode() {
+		return getNumber();
+	}
 
-    @Override
-    public String toString() {
-        String string = this.majorRevision
-            + "." + this.minorRevision
-            + "." + this.maintenanceRevision
-            + "_" + String.format("%02d", this.updateRevision);
+	@Override
+	public String toString() {
+		String string = this.majorRevision + "." + this.minorRevision + "." + this.maintenanceRevision + "_"
+				+ String.format("%02d", this.updateRevision);
 
-        if (this.build != null) {
-            string += "-" + this.build;
-        }
+		if (this.build != null) {
+			string += "-" + this.build;
+		}
 
-        return string;
-    }
+		return string;
+	}
 
-    public static Version decode(String string) {
-        Version version = null;
+	public static Version decode(String string) {
+		try {
+			Version version = null;
 
-        int majorRevision = 0;
-        int minorRevision = 0;
-        int maintenanceRevision = 0;
-        int updateRevision = 0;
-        String build = null;
+			int majorRevision = 0;
+			int minorRevision = 0;
+			int maintenanceRevision = 0;
+			int updateRevision = 0;
+			String build = null;
 
-        String revision;
-        int i = string.indexOf("-");
-        if (i == -1) {
-            revision = string;
-        } else {
-            revision = string.substring(0, i);
-            build = string.substring(i + 1);
-        }
+			String revision;
+			int i = string.indexOf("-");
+			if (i == -1) {
+				revision = string;
+			} else {
+				revision = string.substring(0, i);
+				build = string.substring(i + 1);
+			}
 
-        String[] revisionNumbers = revision.split("\\.");
+			String[] revisionNumbers = revision.split("\\.");
 
-        if (revisionNumbers.length > 0) {
-            majorRevision = Integer.parseInt(revisionNumbers[0]);
+			if (revisionNumbers.length > 0) {
+				majorRevision = Integer.parseInt(revisionNumbers[0].replaceAll("+", "").replaceAll("-", ""));
 
-            if (revisionNumbers.length > 1) {
-                minorRevision = Integer.parseInt(revisionNumbers[1]);
+				if (revisionNumbers.length > 1) {
+					minorRevision = Integer.parseInt(revisionNumbers[1]);
 
-                if (revisionNumbers.length > 2) {
-                    String[] maintenanceRevisionNumbers = revisionNumbers[2].split("_");
+					if (revisionNumbers.length > 2) {
+						String[] maintenanceRevisionNumbers = revisionNumbers[2].split("_");
 
-                    if (maintenanceRevisionNumbers.length > 0) {
-                        maintenanceRevision = Integer.parseInt(maintenanceRevisionNumbers[0]);
+						if (maintenanceRevisionNumbers.length > 0) {
+							maintenanceRevision = Integer.parseInt(maintenanceRevisionNumbers[0]);
 
-                        if (maintenanceRevisionNumbers.length > 1) {
-                            updateRevision = Integer.parseInt(maintenanceRevisionNumbers[1]);
-                        }
-                    }
-                }
-            }
+							if (maintenanceRevisionNumbers.length > 1) {
+								updateRevision = Integer.parseInt(maintenanceRevisionNumbers[1]);
+							}
+						}
+					}
+				}
 
-            version = new Version(majorRevision, minorRevision, maintenanceRevision,
-                updateRevision, build);
-        }
+				version = new Version(majorRevision, minorRevision, maintenanceRevision, updateRevision, build);
+			}
 
-        return version;
-    }
+			return version;
+		} catch (NumberFormatException e) {
+			System.err.println("Warning: failed to parse Java version number.");
+			e.printStackTrace();
+
+			return new Version(1, 7, 1, 1);
+		}
+	}
 }
