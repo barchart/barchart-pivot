@@ -145,7 +145,7 @@ public class Version implements Comparable<Version>, Serializable {
 			System.err.println("Warning: failed to parse Java version number.");
 			e.printStackTrace();
 
-			return new Version(1, 7, 1, 1);
+			return new Version(7, 1, 1, 1);
 		}
 	}
 }
