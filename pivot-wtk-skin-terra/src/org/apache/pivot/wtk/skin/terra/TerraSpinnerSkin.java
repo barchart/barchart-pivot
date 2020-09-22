@@ -74,21 +74,24 @@ public class TerraSpinnerSkin extends ContainerSkin implements Spinner.Skin,
         public void start(Spinner spinnerArgument, int directionArgument) {
             assert(directionArgument != 0) : "Direction must be positive or negative";
 
-            if (scheduledSpinnerCallback != null) {
-                throw new IllegalStateException("Already running");
+            if (spinner.isEnableAutoSpinOnMouseDown()) {
+	            if (scheduledSpinnerCallback != null) {
+	                throw new IllegalStateException("Already running");
+	            }
             }
 
             this.spinner = spinnerArgument;
             this.direction = directionArgument;
 
-            // Wait a timeout period, then begin rapidly spinning
-            scheduledSpinnerCallback = ApplicationContext.scheduleRecurringCallback(new Runnable() {
-                @Override
-                public void run() {
-                    spin();
-                }
-            }, 400, 30);
-
+            if (spinner.isEnableAutoSpinOnMouseDown()) {
+	            // Wait a timeout period, then begin rapidly spinning
+	            scheduledSpinnerCallback = ApplicationContext.scheduleRecurringCallback(new Runnable() {
+	                @Override
+	                public void run() {
+	                    spin();
+	                }
+	            }, 400, 30);
+            }
             // We initially spin once to register that we've started
             spin();
         }

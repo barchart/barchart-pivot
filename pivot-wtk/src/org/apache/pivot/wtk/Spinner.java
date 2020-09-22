@@ -345,6 +345,7 @@ public class Spinner extends Container {
         }
     };
 
+    private boolean enableAutoSpinOnMouseDown = true;
     private SpinnerListenerList spinnerListeners = new SpinnerListenerList();
     private SpinnerItemListenerList spinnerItemListeners = new SpinnerItemListenerList();
     private SpinnerSelectionListenerList spinnerSelectionListeners =
@@ -749,4 +750,12 @@ public class Spinner extends Container {
     public ListenerList<SpinnerBindingListener> getSpinnerBindingListeners() {
         return spinnerBindingListeners;
     }
+
+	public boolean isEnableAutoSpinOnMouseDown() {
+		return enableAutoSpinOnMouseDown;
+	}
+
+	public void setEnableAutoSpinOnMouseDown(boolean enableAutoSpinOnMouseDown) {
+		this.enableAutoSpinOnMouseDown = enableAutoSpinOnMouseDown;
+	}
 }
